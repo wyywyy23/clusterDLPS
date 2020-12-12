@@ -19,3 +19,5 @@ simgrid-examples/0-MasterWorkers/Makefile
 simgrid-examples/0-MasterWorkers/cmake_install.cmake
 simgrid-examples/0-MasterWorkers/master-workers
 simgrid-examples/0-MasterWorkers/ping-pong
+simgrid-examples/0-MasterWorkers/Rplots.pdf
+simgrid-examples/0-MasterWorkers/simgrid.trace
