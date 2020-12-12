@@ -5,4 +5,3 @@
 Rscript draw_gantt.R simgrid.trace
 
 evince Rplots.pdf &
-
