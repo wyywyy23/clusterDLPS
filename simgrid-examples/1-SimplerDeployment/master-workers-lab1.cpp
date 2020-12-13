@@ -1,11 +1,16 @@
-/* Copyright (c) 2010-2019. The SimGrid Team. All rights reserved.          */
+/* Copyright (c) 2010-2020. The SimGrid Team. All rights reserved.          */
 
 /* This program is free software; you can redistribute it and/or modify it
  * under the terms of the license (GNU LGPL) which comes with this package. */
 
-/* ********************************************************************************** */
-/* Take this tutorial online: https://simgrid.org/doc/latest/Tutorial_Algorithms.html */
-/* ********************************************************************************** */
+/****************************************************************************
+ *
+ *     This is our solution to the first lab of the S4U tutorial
+ * (available online at https://simgrid.frama.io/simgrid/tuto_s4u.html)
+ *
+ *    Reading this further before taking the tutorial will SPOIL YOU!!!
+ *
+ ****************************************************************************/
 
 #include <simgrid/s4u.hpp>
 
@@ -15,18 +20,18 @@ static void master(std::vector<std::string> args)
 {
   xbt_assert(args.size() == 5, "The master function expects 4 arguments");
 
-  long workers_count         = std::stol(args[1]);
-  long tasks_count           = std::stol(args[2]);
-  double compute_cost        = std::stod(args[3]);
-  double communication_cost  = std::stod(args[4]);
+  long workers_count        = std::stol(args[1]);
+  long tasks_count          = std::stol(args[2]);
+  double compute_cost       = std::stod(args[3]);
+  double communication_cost = std::stod(args[4]);
 
   XBT_INFO("Got %ld workers and %ld tasks to process", workers_count, tasks_count);
 
-  for (long i = 0; i < tasks_count; i++) { /* For each task to be executed: */
+  for (int i = 0; i < tasks_count; i++) { /* For each task to be executed: */
     /* - Select a worker in a round-robin way */
-    std::string worker_rank        = std::to_string(i % workers_count);
-    std::string mailbox_name       = std::string("worker-") + worker_rank;
-    simgrid::s4u::Mailbox* mailbox = simgrid::s4u::Mailbox::by_name(mailbox_name);
+    std::string worker_rank          = std::to_string(i % workers_count);
+    std::string mailbox_name         = std::string("worker-") + worker_rank;
+    simgrid::s4u::Mailbox* mailbox   = simgrid::s4u::Mailbox::by_name(mailbox_name);
 
     /* - Send the computation cost to that worker */
     XBT_INFO("Sending task %d of %ld to mailbox '%s'", i, tasks_count, mailbox->get_cname());
@@ -34,11 +39,10 @@ static void master(std::vector<std::string> args)
   }
 
   XBT_INFO("All tasks have been dispatched. Request all workers to stop.");
-  for (long i = 0; i < workers_count; i++) {
+  for (int i = 0; i < workers_count; i++) {
     /* The workers stop when receiving a negative compute_cost */
-    std::string worker_rank        = std::to_string(i % workers_count);
-    std::string mailbox_name       = std::string("worker-") + worker_rank;
-    simgrid::s4u::Mailbox* mailbox = simgrid::s4u::Mailbox::by_name(mailbox_name);
+    std::string mailbox_name         = std::string("worker-") + std::to_string(i);
+    simgrid::s4u::Mailbox* mailbox   = simgrid::s4u::Mailbox::by_name(mailbox_name);
 
     mailbox->put(new double(-1.0), 0);
   }
@@ -46,12 +50,13 @@ static void master(std::vector<std::string> args)
 
 static void worker(std::vector<std::string> args)
 {
-  xbt_assert(args.size() == 2, "The worker expects 1 argument");
+  xbt_assert(args.size() == 2, "The worker expects a single argument");
+  long id = std::stol(args[1]);
 
-  std::string mailbox_name       = std::string("worker-") + args[1];
-  simgrid::s4u::Mailbox* mailbox = simgrid::s4u::Mailbox::by_name(mailbox_name);
-  
-double compute_cost;
+  const std::string mailbox_name   = std::string("worker-") + std::to_string(id);
+  simgrid::s4u::Mailbox* mailbox   = simgrid::s4u::Mailbox::by_name(mailbox_name);
+
+  double compute_cost;
   do {
     double* msg  = static_cast<double*>(mailbox->get());
     compute_cost = *msg;
@@ -59,7 +64,6 @@ double compute_cost;
 
     if (compute_cost > 0) /* If compute_cost is valid, execute a computation of that cost */
       simgrid::s4u::this_actor::execute(compute_cost);
-
   } while (compute_cost > 0); /* Stop when receiving an invalid compute_cost */
 
   XBT_INFO("Exiting now.");
