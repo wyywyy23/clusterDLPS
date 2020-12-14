@@ -7,7 +7,7 @@ add_definitions("-Wall")
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SIMGRID_INSTALL_PATH "/usr/local/" CACHE PATH "The path to SimGrid's installation directory")
+set(SIMGRID_INSTALL_PATH "/opt/simgrid" CACHE PATH "The path to SimGrid's installation directory")
 
 # include directories for dependencies and WRENCH libraries
 include_directories(src/ ${SIMGRID_INSTALL_PATH}/include /usr/local/include /opt/local/include /usr/local/include/wrench)
