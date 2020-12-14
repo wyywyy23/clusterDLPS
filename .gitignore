@@ -1,3 +1,6 @@
+# MacOS
+**/.DS_Store
+
 # CMake and Makefiles
 **/CMakeFiles
 **/CMakeCache.txt
