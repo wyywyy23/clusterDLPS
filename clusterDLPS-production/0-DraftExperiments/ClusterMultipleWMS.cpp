@@ -140,7 +140,8 @@ int main(int argc, char **argv) {
                         new wrench::CloudStandardJobScheduler(storage_service)),
                                       nullptr, compute_services, storage_services, wms_host)));
             workflows.push_back(wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "100Gf"));
-            wms_masters.back()->addWorkflow(workflows.back());
+            wms_masters.back()->addWorkflow(workflows.back(), workflows.back()->getSubmittedTime());
+	    std::cerr << "WMS defer time is " << workflows.back()->getSubmittedTime() << 's' << std::endl;
 	} else {
 	    std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
 	}
