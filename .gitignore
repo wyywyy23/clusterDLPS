@@ -10,6 +10,7 @@
 # Execution results
 **/*.trace
 **/*.pdf
+**/output
 
 # Executables
 **/master-workers
