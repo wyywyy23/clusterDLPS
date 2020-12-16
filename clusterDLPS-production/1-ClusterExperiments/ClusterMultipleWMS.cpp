@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
     } */
 
     for (int i = 0; i < workflows.size(); i++) {
-	simulation.getOutput().dumpWorkflowExecutionJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_exe.json");
+	simulation.getOutput().dumpUnifiedJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_exe.json", false, true, false, false, false, false, true);
 	simulation.getOutput().dumpWorkflowGraphJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_graph.json");
     }
     simulation.getOutput().dumpLinkUsageJSON("output/link_usage.json");

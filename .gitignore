@@ -5,6 +5,11 @@
 **/CMakeFiles
 **/CMakeCache.txt
 **/Makefile
+**/cmake_install.cmake
+
+# Cluster trace
+clusterDLPS-production/trace_to_workflows/alibaba/trace/
+!/clusterDLPS-production/trace_to_workflows/alibaba/trace/generate_sampled_trace.sh
 
 # Execution results
 **/*.trace
@@ -20,3 +25,4 @@
 **/ping-pong
 **/wrench-example-*
 **/cluster-multiple-wms
+**/trace2workflows

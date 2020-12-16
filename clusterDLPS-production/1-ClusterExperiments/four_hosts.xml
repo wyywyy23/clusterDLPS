@@ -23,7 +23,7 @@
         </host>
 
         <!-- A network link -->
-        <link id="network_link" bandwidth="12.5GBps" latency="20us"/>
+        <link id="network_link" bandwidth="50MBps" latency="20us"/>
         <!-- WMSHost's local "loopback" link -->
         <link id="loopback_WMSHost" bandwidth="1000EBps" latency="0us"/>
         <!--VirtualizedClusterProviderHost's local "loopback" link -->
