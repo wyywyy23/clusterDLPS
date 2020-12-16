@@ -16,9 +16,12 @@ find_library(SimGrid_LIBRARY NAMES simgrid)
 find_library(PUGIXML_LIBRARY NAMES pugixml)
 find_library(GTEST_LIBRARY NAMES gtest)
 
+# experimental/filesystem linkers
+set(FILESYSTEM_LIBRARY "stdc++fs")
 
 # source files
 set(SOURCE_FILES
+	helper/getAllFilesInDir.h
         optimizations/static/SimplePipelineClustering.h
         optimizations/static/SimplePipelineClustering.cpp
         optimizations/dynamic/FailureDynamicClustering.h
@@ -64,6 +67,16 @@ if (ENABLE_BATSCHED)
     target_link_libraries(wrench-example-real-workflow-cluster wrenchpegasusworkflowparser wrench ${SimGrid_qLIBRARY} ${PUGIXML_LIBRARY} ${ZMQ_LIBRARY})
 else()
     target_link_libraries(wrench-example-real-workflow-cluster wrenchpegasusworkflowparser wrench ${SimGrid_LIBRARY} ${PUGIXML_LIBRARY})
+endif()
+
+# multi-wms example
+set(APP_MULTIWMS_FILES ClusterMultipleWMS.cpp)
+add_executable(cluster-multiple-wms ${SOURCE_FILES} ${APP_MULTIWMS_FILES})
+if (ENABLE_BATSCHED)
+    find_library(ZMQ_LIBRARY NAMES zmq)
+    target_link_libraries(cluster-multiple-wms wrenchpegasusworkflowparser wrench ${SimGrid_qLIBRARY} ${PUGIXML_LIBRARY} ${ZMQ_LIBRARY} ${FILESYSTEM_LIBRARY})
+else()
+    target_link_libraries(cluster-multiple-wms wrenchpegasusworkflowparser wrench ${SimGrid_LIBRARY} ${PUGIXML_LIBRARY} ${FILESYSTEM_LIBRARY})
 endif()
 
 install(TARGETS wrench-example-real-workflow-cluster DESTINATION bin)
