@@ -1,4 +1,5 @@
 #!/bin/bash
+
 div ()  # Arguments: dividend and divisor
 {
         if [ $2 -eq 0 ]; then echo division by 0; exit; fi
