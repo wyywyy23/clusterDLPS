@@ -7,7 +7,7 @@
 
 int main() {
 
-    int num_machine = 4;
+    int num_machine = 16;
 
     const int num_task_column = 7;
     const int num_instance_column = 7;
