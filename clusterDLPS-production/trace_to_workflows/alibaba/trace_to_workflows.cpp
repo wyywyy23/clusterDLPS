@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <utility>
+#include <set>
 #include <map>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -10,12 +12,24 @@
 
 #include "fast-cpp-csv-parser/csv.h"
 
-wrench::Workflow* updateJob(wrench::Workflow* job,
+class AlibabaJob : public wrench::Workflow {
+    public:
+	AlibabaJob* updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem);
+    private:
+	std::set<std::pair<int, int>> dependencies;
+};
+
+AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem) {
+    this->setName(this->getName() + "_updated");
+    return this;
+}
+
+/* wrench::Workflow* updateJob(wrench::Workflow* job,
                             std::string task_name, std::string instance_name,
                             int duration, double avg_cpu, double avg_mem) {
     job->setName(job->getName() + "_updated");
     return job;
-}
+} */
 
 int main(int argc, char **argv) {
 
@@ -53,15 +67,15 @@ int main(int argc, char **argv) {
     double avg_mem;
 
     /* Initiate a map of workflows (jobs) as <jobID, workflow>*/
-    std::map<std::string, wrench::Workflow*> jobs;
+    std::map<std::string, AlibabaJob*> jobs;
 
     while (task_trace.read_row(start_time, job_name, task_name, instance_name, duration, avg_cpu, avg_mem)) {
 	
 	if (jobs.empty() || jobs.find(job_name) == jobs.end()) { /* a new job */
-	    wrench::Workflow* job = new wrench::Workflow();
+	    AlibabaJob* job = new AlibabaJob();
 	    job->setName(job_name);
 	    job->setSubmittedTime(start_time);
-	    jobs[job_name] = updateJob(job, task_name, instance_name, duration, avg_cpu, avg_mem);
+	    jobs[job_name] = job->updateJob(task_name, instance_name, duration, avg_cpu, avg_mem);
 	}
     }
 
