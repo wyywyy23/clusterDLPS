@@ -8,6 +8,7 @@
 **/cmake_install.cmake
 
 # Cluster trace
+clusterDLPS-production/trace_to_workflows/alibaba/workflows/
 clusterDLPS-production/trace_to_workflows/alibaba/trace/
 !/clusterDLPS-production/trace_to_workflows/alibaba/trace/generate_sampled_trace.sh
 
