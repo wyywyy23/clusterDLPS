@@ -16,10 +16,10 @@
         </host>
 
         <host id="VirtualizedClusterHost1" speed="100Gf" core="10">
-            <prop id="ram" value="64GB" />
+            <prop id="ram" value="256GB" />
         </host>
         <host id="VirtualizedClusterHost2" speed="100Gf" core="10">
-            <prop id="ram" value="64GB" />
+            <prop id="ram" value="256GB" />
         </host>
 
         <!-- A network link -->

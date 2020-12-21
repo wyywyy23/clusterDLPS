@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
 	/* Create JSON structure*/
 	nlohmann::json j;
 	j["name"] = itj->first;
-	j["description"] = std::to_string(itj->second->getNumberOfTasks()) + " tasks in " + std::to_string(itj->second->getNumLevels()) + " levels.";
+	j["description"] = "This job contains " + std::to_string(itj->second->getNumberOfTasks()) + " tasks.";
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
 	char buffer [80];
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
 	    j_machine["architecture"] = "x86_64";
 	    j_machine["release"] = "none";
 	    j_machine["memory"] = 100;
-	    j_machine["cpu"] = {{"count", 96}, {"vendor", "none"}, {"speed", "2000"}};
+	    j_machine["cpu"] = {{"count", 96}, {"vendor", "none"}, {"speed", 2000}};
 	    j_machines.insert(j_machines.end(), j_machine);
 	}
 	j_workflow["machines"] = j_machines;
@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
 	    nlohmann::json j_job = nlohmann::json::object();
 	    j_job["name"] = itt->first;
 	    j_job["type"] = "compute";
-	    j_job["arguments"] = "none";
+	    j_job["arguments"] = nlohmann::json::array({"none"});
 	    j_job["runtime"] = itt->second->getFlops();
 	    j_job["cores"] = 1;
 	    j_job["avgCPU"] = itt->second->getAverageCPU();
@@ -233,14 +233,14 @@ int main(int argc, char **argv) {
 	    double bytes_read = 0;
 	    for (auto f: input_files) {
 		j_files.insert(j_files.end(), nlohmann::json::object(
-			{{"name", f->getID()}, {"size", f->getSize()}, {"link", "input"}}));
+			{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "input"}}));
 		bytes_read += f->getSize();
 	    }
 	    auto output_files = itt->second->getOutputFiles();
 	    double bytes_written = 0;
 	    for (auto f: output_files) {
 		j_files.insert(j_files.end(), nlohmann::json::object(
-			{{"name", f->getID()}, {"size", f->getSize()}, {"link", "output"}}));
+			{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "output"}}));
 		bytes_written += f->getSize();
 	    }
 	    j_job["files"] = j_files;

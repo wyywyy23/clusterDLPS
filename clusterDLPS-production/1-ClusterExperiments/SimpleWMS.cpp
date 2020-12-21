@@ -57,7 +57,7 @@ namespace wrench {
 
       // Create a job manager
       this->job_manager = this->createJobManager();
-      this->bandwidth_meter = this->createBandwidthMeter(wrench::Simulation::getLinknameList(), 1);
+      // this->bandwidth_meter = this->createBandwidthMeter(wrench::Simulation::getLinknameList(), 1);
 
       // Create a data movement manager
       std::shared_ptr<DataMovementManager> data_movement_manager = this->createDataMovementManager();
