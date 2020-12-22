@@ -10,6 +10,7 @@
 # Cluster trace
 clusterDLPS-production/trace_to_workflows/alibaba/workflows/
 clusterDLPS-production/trace_to_workflows/alibaba/trace/
+clusterDLPS-production/1-ClusterExperiments/alibaba_workflows/
 !/clusterDLPS-production/trace_to_workflows/alibaba/trace/generate_sampled_trace.sh
 
 # Execution results

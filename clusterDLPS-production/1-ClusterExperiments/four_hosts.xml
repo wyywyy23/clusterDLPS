@@ -4,26 +4,26 @@
     <zone id="AS0" routing="Full">
 
         <!-- The host on which the WMS will run -->
-        <host id="WMSHost" speed="10Gf" core="1">
-            <disk id="hard_drive" read_bw="100MBps" write_bw="100MBps">
-                <prop id="size" value="5000GiB"/>
+        <host id="WMSHost" speed="1Gf" core="96">
+            <disk id="hard_drive" read_bw="100EBps" write_bw="100EBps">
+                <prop id="size" value="5000EiB"/>
                 <prop id="mount" value="/"/>
             </disk>
         </host>
 
         <!-- The host on which the VirtualizedClusterComputeService will run -->
-        <host id="VirtualizedClusterProviderHost" speed="1Gf" core="1">
+        <host id="VirtualizedClusterProviderHost" speed="1Gf" core="96">
         </host>
 
-        <host id="VirtualizedClusterHost1" speed="100Gf" core="10">
+        <host id="VirtualizedClusterHost1" speed="1Gf" core="96">
             <prop id="ram" value="256GB" />
         </host>
-        <host id="VirtualizedClusterHost2" speed="100Gf" core="10">
+        <host id="VirtualizedClusterHost2" speed="1Gf" core="96">
             <prop id="ram" value="256GB" />
         </host>
 
         <!-- A network link -->
-        <link id="network_link" bandwidth="50MBps" latency="20us"/>
+        <link id="network_link" bandwidth="100Gbps" latency="20us"/>
         <!-- WMSHost's local "loopback" link -->
         <link id="loopback_WMSHost" bandwidth="1000EBps" latency="0us"/>
         <!--VirtualizedClusterProviderHost's local "loopback" link -->
