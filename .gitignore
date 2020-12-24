@@ -28,3 +28,4 @@ clusterDLPS-production/1-ClusterExperiments/alibaba_workflows/
 **/wrench-example-*
 **/cluster-multiple-wms
 **/trace2workflows
+**/generate-platform
