@@ -8,15 +8,18 @@
 **/cmake_install.cmake
 
 # Cluster trace
-clusterDLPS-production/trace_to_workflows/alibaba/workflows/
-clusterDLPS-production/trace_to_workflows/alibaba/trace/
+batsim-example/**/workflows/
+batsim-example/**/workloads/
+clusterDLPS-production/**/alibaba/workflows/
+clusterDLPS-production/**/alibaba/trace/
 clusterDLPS-production/1-ClusterExperiments/alibaba_workflows/
-!/clusterDLPS-production/trace_to_workflows/alibaba/trace/generate_sampled_trace.sh
+!/clusterDLPS-production/**/alibaba/trace/generate_sampled_trace.sh
 
 # Execution results
 **/*.trace
 **/*.pdf
 **/output
+**/expe-out
 
 # Executables
 **/master-workers
@@ -29,3 +32,4 @@ clusterDLPS-production/1-ClusterExperiments/alibaba_workflows/
 **/cluster-multiple-wms
 **/trace2workflows
 **/generate-platform
+**/wyy_simulator

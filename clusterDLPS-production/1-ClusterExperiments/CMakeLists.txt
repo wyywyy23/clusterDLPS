@@ -15,6 +15,7 @@ find_library(WRENCH_PEGASUS_LIBRARY NAMES wrenchpegasusworkflowparser)
 find_library(SimGrid_LIBRARY NAMES simgrid)
 find_library(PUGIXML_LIBRARY NAMES pugixml)
 find_library(GTEST_LIBRARY NAMES gtest)
+find_library(ZMQ_LIBRARY NAMES zmq)
 
 # experimental/filesystem linkers
 set(FILESYSTEM_LIBRARY "stdc++fs")
@@ -39,12 +40,7 @@ set(SOURCE_FILES
 # multi-wms example
 set(APP_MULTIWMS_FILES ClusterMultipleWMS.cpp)
 add_executable(cluster-multiple-wms ${SOURCE_FILES} ${APP_MULTIWMS_FILES})
-if (ENABLE_BATSCHED)
-    find_library(ZMQ_LIBRARY NAMES zmq)
-    target_link_libraries(cluster-multiple-wms wrenchpegasusworkflowparser wrench ${SimGrid_qLIBRARY} ${PUGIXML_LIBRARY} ${ZMQ_LIBRARY} ${FILESYSTEM_LIBRARY})
-else()
-    target_link_libraries(cluster-multiple-wms wrenchpegasusworkflowparser wrench ${SimGrid_LIBRARY} ${PUGIXML_LIBRARY} ${FILESYSTEM_LIBRARY})
-endif()
+target_link_libraries(cluster-multiple-wms wrenchpegasusworkflowparser wrench ${SimGrid_LIBRARY} ${PUGIXML_LIBRARY} ${ZMQ_LIBRARY} ${FILESYSTEM_LIBRARY})
 
 install(TARGETS cluster-multiple-wms DESTINATION bin)
 

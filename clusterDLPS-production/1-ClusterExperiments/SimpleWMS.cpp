@@ -104,7 +104,7 @@ namespace wrench {
         }
       }
 
-      S4U_Simulation::sleep(10);
+      // S4U_Simulation::sleep(10);
 
       WRENCH_INFO("--------------------------------------------------------");
       if (this->getWorkflow()->isDone()) {

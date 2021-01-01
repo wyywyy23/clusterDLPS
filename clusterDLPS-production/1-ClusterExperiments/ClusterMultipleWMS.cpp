@@ -142,14 +142,14 @@ int main(int argc, char **argv) {
             	new wrench::SimpleWMS(std::unique_ptr<wrench::CloudStandardJobScheduler>(
                     	new wrench::CloudStandardJobScheduler(storage_service)),
                                       nullptr, compute_services, storage_services, wms_host)));
-	    workflows.push_back(wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "100Gf"));
+	    workflows.push_back(wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1Gf"));
 	    wms_masters.back()->addWorkflow(workflows.back());
 	} else if (ends_with(workflow_file, "json")) {
 	    wms_masters.push_back(simulation.add(
                 new wrench::SimpleWMS(std::unique_ptr<wrench::CloudStandardJobScheduler>(
                         new wrench::CloudStandardJobScheduler(storage_service)),
                                       nullptr, compute_services, storage_services, wms_host)));
-            workflows.push_back(wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "100Gf"));
+            workflows.push_back(wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1Gf"));
             wms_masters.back()->addWorkflow(workflows.back(), workflows.back()->getSubmittedTime());
 	    std::cerr << "WMS defer time is " << workflows.back()->getSubmittedTime() << 's' << std::endl;
 	} else {
@@ -234,10 +234,10 @@ int main(int argc, char **argv) {
     } */
 
     for (int i = 0; i < workflows.size(); i++) {
-	simulation.getOutput().dumpUnifiedJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_exe.json", false, true, false, false, false, false, true);
-	simulation.getOutput().dumpWorkflowGraphJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_graph.json");
+	simulation.getOutput().dumpUnifiedJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_exe.json", false, true, false, false, false, false, false);
+	// simulation.getOutput().dumpWorkflowGraphJSON(workflows.at(i), "output/workflow_" + std::to_string(i) + "_graph.json");
     }
-    simulation.getOutput().dumpLinkUsageJSON("output/link_usage.json");
-    simulation.getOutput().dumpPlatformGraphJSON("output/platform_graph.json");
+    // simulation.getOutput().dumpLinkUsageJSON("output/link_usage.json");
+    // simulation.getOutput().dumpPlatformGraphJSON("output/platform_graph.json");
     return 0;
 }
