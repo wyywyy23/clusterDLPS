@@ -24,6 +24,22 @@ int Simulator::run(int argc, char** argv) {
     std::cerr << "Instantiating a platform..." << std::endl;
     simulation.instantiatePlatform(platform_file);
 
+    /* Instantiate one compute service on the WMS host for all nodes */
+    std::vector<std::string> hostname_list = wrench::Simulation::getHostnameList();
+
+    /* Debug */
+    for (auto hostname: hostname_list) {
+	WRENCH_DEBUG("Host: %s\tCores: %ld", hostname.c_str(), wrench::Simulation::getHostNumCores(hostname));
+    }
+    /* std::vector<std::string> linkname_list = wrench::Simulation::getLinknameList();
+    for (auto linkname: linkname_list) {
+	WRENCH_DEBUG("Link: %s\tBW: %f", linkname.c_str(), wrench::Simulation::getLinkBandwidth(linkname));
+    } */
+
+    /* Instantiate one file registry service on the WMS host */
+
+    /* Instantiate a simple storage service for each node */
+
     /* Load all workflows from folder  *
      * Each workflow instantiate a WMS */
     std::cerr << "Loading workflows..." << std::endl;
