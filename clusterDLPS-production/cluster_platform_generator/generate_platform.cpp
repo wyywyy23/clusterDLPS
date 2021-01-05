@@ -96,13 +96,26 @@ int main(int argc, char **argv) {
     host_zone.append_attribute("routing") = "Full";
 
     auto host = host_zone.append_child("host");
-    host.append_attribute("id") = "master";
+    host.append_attribute("id")    = "master";
     host.append_attribute("speed") = "1Gf";
 
+    auto disk = host.append_child("disk");
+    disk.append_attribute("id")       = "cloud_disk";
+    disk.append_attribute("read_bw")  = "4000MBps";
+    disk.append_attribute("write_bw") = "4000MBps";
+
+    auto disk_size = disk.append_child("prop");
+    disk_size.append_attribute("id")    = "size";
+    disk_size.append_attribute("value") = "32768GiB";
+
+    auto disk_mount = disk.append_child("prop");
+    disk_mount.append_attribute("id")    = "mount";
+    disk_mount.append_attribute("value") = "/";
+
     auto host_loopback = host_zone.append_child("link");
-    host_loopback.append_attribute("id") = "loopback";
-    host_loopback.append_attribute("bandwidth") = "1000EBps";
-    host_loopback.append_attribute("latency") = "0us";
+    host_loopback.append_attribute("id")             = "loopback";
+    host_loopback.append_attribute("bandwidth")      = "1000EBps";
+    host_loopback.append_attribute("latency")        = "0us";
     host_loopback.append_attribute("sharing_policy") = "FATPIPE";
 
     auto host_route = host_zone.append_child("route");
@@ -111,14 +124,14 @@ int main(int argc, char **argv) {
     host_route.append_child("link_ctn").append_attribute("id").set_value("loopback");
 
     auto fast_link = big_zone.append_child("link");
-    fast_link.append_attribute("id") = "fast_link";
-    fast_link.append_attribute("bandwidth") = "1000EBps";
-    fast_link.append_attribute("latency") = "0us";
+    fast_link.append_attribute("id")             = "fast_link";
+    fast_link.append_attribute("bandwidth")      = "1000EBps";
+    fast_link.append_attribute("latency")        = "0us";
     fast_link.append_attribute("sharing_policy") = "FATPIPE";
 
     auto zone_route = big_zone.append_child("zoneRoute");
-    zone_route.append_attribute("src") = "Computation";
-    zone_route.append_attribute("dst") = "Master";
+    zone_route.append_attribute("src")    = "Computation";
+    zone_route.append_attribute("dst")    = "Master";
     zone_route.append_attribute("gw_src") = "cluster_router";
     zone_route.append_attribute("gw_dst") = "master";
     zone_route.append_child("link_ctn").append_attribute("id").set_value("fast_link");

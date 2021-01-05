@@ -17,7 +17,7 @@ namespace filesys = std::experimental::filesystem;
  *     vector containing paths of all the files in given directory and its sub directories
  *
  */
-std::vector<std::string> getAllFilesInDir(const std::string &dirPath,     const std::vector<std::string> dirSkipList = { })
+std::vector<std::string> getAllFilesInDir(const std::string& dirPath,     const std::vector<std::string> dirSkipList = { })
 {
     // Create a vector of string
     std::vector<std::string> listOfFiles;

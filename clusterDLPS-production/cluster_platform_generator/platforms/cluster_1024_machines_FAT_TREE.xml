@@ -4,7 +4,12 @@
     <zone id="Cluster_and_a_host" routing="Full">
         <cluster id="Computation" prefix="node-" radical="0-1023" suffix="" speed="1Gf" core="96" bw="100Gbps" lat="20us" topology="FAT_TREE" topo_parameters="2;32,32;1,16;1,2" loopback_bw="1000EBps" loopback_lat="0" router_id="cluster_router" />
         <zone id="Master" routing="Full">
-            <host id="master" speed="1Gf" />
+            <host id="master" speed="1Gf">
+                <disk id="cloud_disk" read_bw="4000MBps" write_bw="4000MBps">
+                    <prop id="size" value="32768GiB" />
+                    <prop id="mount" value="/" />
+                </disk>
+            </host>
             <link id="loopback" bandwidth="1000EBps" latency="0us" sharing_policy="FATPIPE" />
             <route src="master" dst="master">
                 <link_ctn id="loopback" />

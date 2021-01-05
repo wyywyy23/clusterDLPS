@@ -25,6 +25,10 @@ set(SOURCE_FILES
 	src/main.cpp
 	src/Simulator.h
 	src/Simulator.cpp
+	src/wyyWMS.h
+	src/wyyWMS.cpp
+	src/BatchStandardJobScheduler.h
+	src/BatchStandardJobScheduler.cpp
 	src/helper/endWith.h
 	src/helper/getAllFilesInDir.h
 	)
