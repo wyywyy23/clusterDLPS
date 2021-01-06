@@ -2,9 +2,9 @@
 <!DOCTYPE platform SYSTEM "https://simgrid.org/simgrid.dtd">
 <platform version="4.1">
     <zone id="Cluster_and_a_host" routing="Full">
-        <cluster id="Computation" prefix="node-" radical="0-2047" suffix="" speed="1Gf" core="96" bw="100Gbps" lat="20us" topology="FAT_TREE" topo_parameters="2;64,32;1,16;1,4" loopback_bw="1000EBps" loopback_lat="0" router_id="cluster_router" />
+        <cluster id="Computation" prefix="node-" radical="0-2047" suffix="" speed="1f" core="96" bw="100Gbps" lat="20us" topology="FAT_TREE" topo_parameters="2;64,32;1,16;1,4" loopback_bw="1000EBps" loopback_lat="0" router_id="cluster_router" />
         <zone id="Master" routing="Full">
-            <host id="master" speed="1Gf">
+            <host id="master" speed="1f">
                 <disk id="cloud_disk" read_bw="4000MBps" write_bw="4000MBps">
                     <prop id="size" value="32768GiB" />
                     <prop id="mount" value="/" />

@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     cluster_zone.append_attribute("prefix")          = "node-";
     cluster_zone.append_attribute("radical")         = radical.c_str();
     cluster_zone.append_attribute("suffix")          = "";
-    cluster_zone.append_attribute("speed")           = "1Gf";
+    cluster_zone.append_attribute("speed")           = "1f";
     cluster_zone.append_attribute("core")            = "96";
     cluster_zone.append_attribute("bw")              = "100Gbps";
     cluster_zone.append_attribute("lat")             = "20us";
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 
     auto host = host_zone.append_child("host");
     host.append_attribute("id")    = "master";
-    host.append_attribute("speed") = "1Gf";
+    host.append_attribute("speed") = "1f";
 
     auto disk = host.append_child("disk");
     disk.append_attribute("id")       = "cloud_disk";

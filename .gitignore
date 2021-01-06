@@ -13,7 +13,7 @@ batsim-example/**/workloads/
 clusterDLPS-production/**/alibaba/workflows/
 clusterDLPS-production/**/alibaba/trace/
 **/background_trace
-clusterDLPS-production/1-ClusterExperiments/alibaba_workflows/
+**/alibaba_workflows/
 !/clusterDLPS-production/**/alibaba/trace/generate_sampled_trace.sh
 
 # Execution results

@@ -17,8 +17,8 @@ int Simulator::run(int argc, char** argv) {
     auto simulation = new wrench::Simulation();
     simulation->init(&argc, argv);
 
-    if (argc != 5) {
-        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <scheduling algorithm>" << std::endl;
+    if (argc != 5 and argc != 6) {
+        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <scheduling algorithm> [host selection algorithm]" << std::endl;
         exit(1);
     }
 
@@ -60,6 +60,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[4])},
 		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
 		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
+		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 5 ? "FIRSTFIT" : std::string(argv[5])},
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
@@ -210,13 +211,13 @@ wrench::Workflow* Simulator::createWorkflowFromFile(std::string& workflow_file) 
 
     if (endWith(workflow_file, "json")) {
 	try {
-	    workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1Gf");
+	    workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
 	}
     } else if (endWith(workflow_file, "dax")) {
 	try {
-	    workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1Gf");
+	    workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f");
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
 	}
