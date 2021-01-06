@@ -26,6 +26,7 @@ namespace wrench {
                   std::unique_ptr<PilotJobScheduler> pilot_job_scheduler,
                   const std::set<std::shared_ptr<ComputeService>> &compute_services,
                   const std::set<std::shared_ptr<StorageService>> &storage_services,
+		  const std::shared_ptr<FileRegistryService> file_registry_service,
                   const std::string &hostname);
 
     protected:
@@ -37,7 +38,6 @@ namespace wrench {
 
         /** @brief The job manager */
         std::shared_ptr<JobManager> job_manager;
-	// std::shared_ptr<BandwidthMeterService> bandwidth_meter;
         /** @brief Whether the workflow execution should be aborted */
         bool abort = false;
     };

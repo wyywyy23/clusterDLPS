@@ -35,6 +35,7 @@ int Simulator::run(int argc, char** argv) {
     /* Instantiate one compute service on the WMS host for all nodes */
     std::vector<std::string> hostname_list = simulation->getHostnameList();
     std::vector<std::string> compute_nodes = hostname_list;
+    std::vector<std::string> linkname_list = simulation->getLinknameList();
     std::string master_node = "master";
     for (auto it = compute_nodes.begin(); it != compute_nodes.end(); ++it) {
 	if (*it == master_node) {
@@ -47,8 +48,7 @@ int Simulator::run(int argc, char** argv) {
     for (auto hostname: compute_nodes) {
 	WRENCH_DEBUG("Host: %s\tCores: %ld", hostname.c_str(), simulation->getHostNumCores(hostname));
     }
-    /* std::vector<std::string> linkname_list = wrench::Simulation::getLinknameList();
-    for (auto linkname: linkname_list) {
+    /* for (auto linkname: linkname_list) {
 	WRENCH_DEBUG("Link: %s\tBW: %f", linkname.c_str(), wrench::Simulation::getLinkBandwidth(linkname));
     } */
 
@@ -87,7 +87,7 @@ int Simulator::run(int argc, char** argv) {
     }
 
     /* Instantiate one file registry service on the WMS host */
-    std::set<std::shared_ptr<wrench::FileRegistryService>> file_registry_services;
+    std::shared_ptr<wrench::FileRegistryService> file_registry_service;
     wrench::FileRegistryService* temp_file_registry_service = nullptr;
     try {	
 	temp_file_registry_service = new wrench::FileRegistryService(master_node);
@@ -95,14 +95,12 @@ int Simulator::run(int argc, char** argv) {
 	std::cerr << "Cannot instantiate a file registry service: " << e.what() << std::endl;
         exit(1);
     }
-    file_registry_services.insert(simulation->add(temp_file_registry_service));
-    std::cerr << "Instantiated a file registry service on " << temp_file_registry_service->getHostname() << "." << std::endl;
+    file_registry_service = simulation->add(temp_file_registry_service);
+    std::cerr << "Instantiated a file registry service on " << file_registry_service->getHostname() << "." << std::endl;
 
     /* Debug */
     WRENCH_DEBUG("Current file registry services in simulation:");
-    for (auto fr_serv : file_registry_services) {
-	WRENCH_DEBUG("On node: %s\tIs up: %s", fr_serv->getHostname().c_str(), fr_serv->isUp() ? "true" : "false");
-    }
+    WRENCH_DEBUG("On node: %s\tIs up: %s", file_registry_service->getHostname().c_str(), file_registry_service->isUp() ? "true" : "false");
 
     /* Instantiate a simple storage service for each node */
     std::set<std::shared_ptr<wrench::StorageService>> storage_services;
@@ -119,7 +117,21 @@ int Simulator::run(int argc, char** argv) {
 	exit(1);
     }
     storage_services.insert(simulation->add(temp_storage_service));
-    std::cerr << "Instantiated a storage service on " << temp_storage_service->getHostname() << "." << std::endl;
+    for (auto comp_node : compute_nodes) {
+	try {
+	    temp_storage_service = new wrench::SimpleStorageService(comp_node, {"/"}, {
+            	    {wrench::SimpleStorageServiceProperty::BUFFER_SIZE, "infinity"}
+                    }, {
+
+                    }
+	    );
+	} catch (std::invalid_argument &e) {
+	    std::cerr << "Cannot instantiate a storage service: " << e.what() << std::endl;
+	    exit(1);
+	}
+	storage_services.insert(simulation->add(temp_storage_service));
+    }    
+    std::cerr << "Instantiated a storage service on each host." << std::endl;
 
     /* Debug */
     WRENCH_DEBUG("Current storage services in simulation:");
@@ -148,7 +160,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(default_storage)),
-		    nullptr, compute_services, storage_services, master_node
+		    nullptr, compute_services, storage_services, file_registry_service, master_node
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
@@ -194,7 +206,7 @@ int Simulator::run(int argc, char** argv) {
     /* Workflow completion info */ 
     for (auto wms_serv : wms_services) {
 	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
-	simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_unified.json", false, true, false, false, false, false, false);
+	simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_unified.json", false, true, false, false, false, false, true);
     }
 
     /* Task completion trace */

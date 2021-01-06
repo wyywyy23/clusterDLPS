@@ -29,12 +29,13 @@ namespace wrench {
                          std::unique_ptr<PilotJobScheduler> pilot_job_scheduler,
                          const std::set<std::shared_ptr<ComputeService>> &compute_services,
                          const std::set<std::shared_ptr<StorageService>> &storage_services,
+			 const std::shared_ptr<FileRegistryService> file_registry_service,
                          const std::string &hostname) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
             storage_services,
-            {}, nullptr,
+            {}, file_registry_service,
             hostname,
             "wyy") {}
 
@@ -57,10 +58,12 @@ namespace wrench {
 
       // Create a job manager
       this->job_manager = this->createJobManager();
-      // this->bandwidth_meter = this->createBandwidthMeter(wrench::Simulation::getLinknameList(), 1);
 
       // Create a data movement manager
       std::shared_ptr<DataMovementManager> data_movement_manager = this->createDataMovementManager();
+
+      // Start bandwidth meters
+      std::shared_ptr<BandwidthMeterService> bw_meter_service = createBandwidthMeter(this->simulation->getLinknameList(), 0.01);
 
       // Perform static optimizations
       runStaticOptimizations();
