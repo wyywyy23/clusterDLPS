@@ -22,8 +22,8 @@ namespace wrench {
 
     public:
 
-        explicit BatchStandardJobScheduler(std::shared_ptr<StorageService> default_storage_service) :
-                default_storage_service(default_storage_service) {}
+        explicit BatchStandardJobScheduler(std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service) :
+                hostname_to_storage_service(hostname_to_storage_service) {}
 
         /***********************/
         /** \cond DEVELOPER    */
@@ -37,7 +37,7 @@ namespace wrench {
         /***********************/
 
     private:
-        std::shared_ptr<StorageService> default_storage_service;
+        std::map<std::string, std::shared_ptr<StorageService>> hostname_to_storage_service;
 
     };
 }

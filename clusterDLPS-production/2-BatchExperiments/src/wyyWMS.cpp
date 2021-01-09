@@ -30,14 +30,17 @@ namespace wrench {
                          const std::set<std::shared_ptr<ComputeService>> &compute_services,
                          const std::set<std::shared_ptr<StorageService>> &storage_services,
 			 const std::shared_ptr<FileRegistryService> file_registry_service,
-                         const std::string &hostname) : WMS(
+                         const std::string &hostname,
+			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
             storage_services,
             {}, file_registry_service,
             hostname,
-            "wyy") {}
+            "wyy") {
+	this->hostname_to_storage_service = hostname_to_storage_service;
+	}
 
     /**
      * @brief main method of wyyWMS daemon
@@ -63,7 +66,7 @@ namespace wrench {
       std::shared_ptr<DataMovementManager> data_movement_manager = this->createDataMovementManager();
 
       // Start bandwidth meters
-      std::shared_ptr<BandwidthMeterService> bw_meter_service = createBandwidthMeter(this->simulation->getLinknameList(), 0.01);
+      // std::shared_ptr<BandwidthMeterService> bw_meter_service = createBandwidthMeter(this->simulation->getLinknameList(), 0.01);
 
       // Perform static optimizations
       runStaticOptimizations();
@@ -92,6 +95,19 @@ namespace wrench {
 
         // Run ready tasks with defined scheduler implementation
         WRENCH_INFO("Scheduling tasks...");
+	for (auto task: ready_tasks) {
+	    for (auto f : task->getInputFiles()) {
+                std::string local_host = "";
+                if (f->isOutput()){
+                    local_host = f->getOutputOf()->getExecutionHost();
+            	}
+	    	if (not local_host.empty()){
+            	    data_movement_manager->doSynchronousFileCopy(f,
+		        FileLocation::LOCATION(hostname_to_storage_service["master"]),
+		        FileLocation::LOCATION(hostname_to_storage_service[local_host]));
+	    	}
+	    }
+	}
         this->getStandardJobScheduler()->scheduleTasks(this->getAvailableComputeServices<ComputeService>(), ready_tasks);
 
         // Wait for a workflow execution event, and process it

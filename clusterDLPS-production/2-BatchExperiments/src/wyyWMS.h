@@ -27,7 +27,8 @@ namespace wrench {
                   const std::set<std::shared_ptr<ComputeService>> &compute_services,
                   const std::set<std::shared_ptr<StorageService>> &storage_services,
 		  const std::shared_ptr<FileRegistryService> file_registry_service,
-                  const std::string &hostname);
+                  const std::string &hostname,
+		  const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service);
 
     protected:
 
@@ -38,6 +39,9 @@ namespace wrench {
 
         /** @brief The job manager */
         std::shared_ptr<JobManager> job_manager;
+
+        std::map<std::string, std::shared_ptr<StorageService>> hostname_to_storage_service;
+
         /** @brief Whether the workflow execution should be aborted */
         bool abort = false;
     };

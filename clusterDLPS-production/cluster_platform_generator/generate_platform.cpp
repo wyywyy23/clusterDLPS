@@ -101,12 +101,12 @@ int main(int argc, char **argv) {
 
     auto disk = host.append_child("disk");
     disk.append_attribute("id")       = "cloud_disk";
-    disk.append_attribute("read_bw")  = "4000MBps";
-    disk.append_attribute("write_bw") = "4000MBps";
+    disk.append_attribute("read_bw")  = "1000EBps"; // Alibaba 4000MBps
+    disk.append_attribute("write_bw") = "1000EBps"; // Alibaba 4000MBps
 
     auto disk_size = disk.append_child("prop");
     disk_size.append_attribute("id")    = "size";
-    disk_size.append_attribute("value") = "32768GiB";
+    disk_size.append_attribute("value") = "1000EB"; // Alibaba 32768GiB
 
     auto disk_mount = disk.append_child("prop");
     disk_mount.append_attribute("id")    = "mount";

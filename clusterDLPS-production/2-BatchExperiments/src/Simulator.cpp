@@ -104,6 +104,7 @@ int Simulator::run(int argc, char** argv) {
 
     /* Instantiate a simple storage service for each node */
     std::set<std::shared_ptr<wrench::StorageService>> storage_services;
+    std::map<std::string, std::shared_ptr<wrench::StorageService>> hostname_to_storage_service;
     wrench::SimpleStorageService* temp_storage_service = nullptr;
     try {
 	temp_storage_service = new wrench::SimpleStorageService(master_node, {"/"}, {
@@ -116,7 +117,7 @@ int Simulator::run(int argc, char** argv) {
 	std::cerr << "Cannot instantiate a storage service: " << e.what() << std::endl;
 	exit(1);
     }
-    storage_services.insert(simulation->add(temp_storage_service));
+    hostname_to_storage_service[temp_storage_service->getHostname()] = simulation->add(temp_storage_service);
     for (auto comp_node : compute_nodes) {
 	try {
 	    temp_storage_service = new wrench::SimpleStorageService(comp_node, {"/"}, {
@@ -129,8 +130,11 @@ int Simulator::run(int argc, char** argv) {
 	    std::cerr << "Cannot instantiate a storage service: " << e.what() << std::endl;
 	    exit(1);
 	}
-	storage_services.insert(simulation->add(temp_storage_service));
-    }    
+	hostname_to_storage_service[temp_storage_service->getHostname()] = simulation->add(temp_storage_service);
+    }
+    for (auto it = hostname_to_storage_service.begin(); it != hostname_to_storage_service.end(); ++it) {
+	storage_services.insert(it->second);
+    }
     std::cerr << "Instantiated a storage service on each host." << std::endl;
 
     /* Debug */
@@ -156,17 +160,16 @@ int Simulator::run(int argc, char** argv) {
 	WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
 
 	wrench::WMS* temp_wms = nullptr;
-	auto default_storage = *storage_services.begin();
 	try {
 	    temp_wms = new wrench::wyyWMS(
-		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(default_storage)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node
+		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
+		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
 	    exit(1);
 	}
-	WRENCH_DEBUG("Instantiated a WMS for %s, default storage: %s", workflow_file.c_str(), default_storage->getHostname().c_str());
+	WRENCH_DEBUG("Instantiated a WMS for %s.", workflow_file.c_str());
 	temp_wms->addWorkflow(temp_workflow, temp_workflow->getSubmittedTime());
 	wms_services.insert(simulation->add(temp_wms));
     }
@@ -182,7 +185,7 @@ int Simulator::run(int argc, char** argv) {
     for (auto wms_serv : wms_services) {
 	for (auto const &f : wms_serv->getWorkflow()->getInputFiles()) {
 	    try {
-		simulation->stageFile(f, *storage_services.begin());
+		simulation->stageFile(f, hostname_to_storage_service[master_node]);
 		WRENCH_DEBUG("Staged input file %s", f->getID().c_str());
 	    } catch (std::runtime_error &e) {
 		std::cerr << "Cannot stage input file " << f->getID() << ": " << e.what() << std::endl;
@@ -206,7 +209,7 @@ int Simulator::run(int argc, char** argv) {
     /* Workflow completion info */ 
     for (auto wms_serv : wms_services) {
 	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
-	simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_unified.json", false, true, false, false, false, false, true);
+	simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_unified.json", false, true, false, false, false, false, false);
     }
 
     /* Task completion trace */

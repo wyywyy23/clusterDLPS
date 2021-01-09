@@ -13,83 +13,17 @@
 
 #include "fast-cpp-csv-parser/csv.h"
 
-std::vector<std::string> splitTaskNames(std::string task_name, std::string delimiter) {
-    std::vector<std::string> split_names;
-    size_t pos = 0;
-    while ((pos = task_name.find(delimiter)) != std::string::npos) {
-	split_names.push_back(task_name.substr(0, pos));
-	task_name.erase(0, pos + delimiter.length());
-    }
-    split_names.push_back(task_name);
-    
-    return split_names;
-}
-
-double generateFileSize(double exe_time) { // File size in KB
-    return exe_time * 50000000;
-}
-
-class AlibabaJob : public wrench::Workflow {
-
-    public:
-	AlibabaJob* updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem);
-	std::set<std::pair<std::string, std::string>> getDependencyMap() {
-		return this->dependencies; }
-	std::multimap<std::string, std::string> getTaskInstanceMap() {
-		return this->task_instances; }
-        void printPairs(); // only for debugging
-
-    private:
-	std::set<std::pair<std::string, std::string>> dependencies;
-	std::multimap<std::string, std::string> task_instances; 
-};
-
-void AlibabaJob::printPairs() { // only for debugging
-    std::cerr << "Dependency pairs:" << std::endl;
-    for (auto it = this->dependencies.begin(); it != this->dependencies.end(); ++it) {
-	std::cerr << "{" << it->first << "," << it->second << "} ";
-    }
-    std::cerr << std::endl << "Task instance pairs:" << std::endl;
-    for (auto it = this->task_instances.begin(); it != this->task_instances.end(); ++it) {
-        std::cerr << "{" << it->first << "," << it->second << "} ";
-    }
-    std::cerr << std::endl;
-}
-
-AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem) {
-
-    wrench::WorkflowTask* task = this->addTask(instance_name, duration, 1, 1, avg_mem);
-    task->setAverageCPU(avg_cpu);
-
-    /* Remove first letter and split into individual task IDs */
-    std::vector<std::string> split_names;
-    if (task_name.length() < 4 || (task_name.length() >= 4 && task_name.substr(0, 4).compare("task") != 0)) {
-	split_names = splitTaskNames(task_name.erase(0,1), "_");
-    }
-    
-    if (split_names.size() > 0) {
-	if (split_names.size() > 1) {
-            /* Update dependency map */
-	    for (int i = 1; i < split_names.size(); i++) {
-	        this->dependencies.insert(std::make_pair(split_names.front(), split_names.at(i)));
-	    }
-	}
-    
-        /* Update task instances map */
-        this->task_instances.emplace(split_names.front(), instance_name);
-    }
-    
-    return this;
-}
+#include "AlibabaJob.h"
 
 int main(int argc, char **argv) {
 
-    if (argc != 2) {
-	std::cerr << "Usage: " << argv[0] << "<number of machines>" << std::endl;
+    if (argc != 3) {
+	std::cerr << "Usage: " << argv[0] << "<number of machines> <time out in seconds>" << std::endl;
 	exit(1);
     }
     
-    int num_machine = 4; 
+    int num_machine = 4;
+    double time_out = std::atof(argv[2]);
     try {
 	num_machine = std::atoi(argv[1]);
     } catch (std::invalid_argument &e) {
@@ -134,8 +68,11 @@ int main(int argc, char **argv) {
 	}
     }
     
+    long num_skipped = 0;
     for (auto itj = jobs.begin(); itj != jobs.end(); ++itj) {
-	 cerr << "Generating JSON for " <<itj->first << " ..." << std::endl;
+	cerr << "Generating JSON for " <<itj->first << "..." << std::endl;
+	double this_time_out = time_out;
+
 	/* Add an output file to each task instance */
 	auto tasks = itj->second->getTaskMap();
 	for (auto itt = tasks.begin(); itt != tasks.end(); ++itt) {
@@ -145,22 +82,36 @@ int main(int argc, char **argv) {
 		output_file = itj->second->getFileByID(file_name);
 		std::cerr << "Got duplicate file!" << std::endl;
 	    } catch (const std::invalid_argument &ia) {
-	        output_file = itj->second->addFile(file_name, generateFileSize(itt->second->getFlops()));
-		itt->second->addOutputFile(output_file);
+	        output_file = itj->second->addFile(file_name, itj->second->generateFileSize(itt->second->getFlops()));
+		itt->second->addOutputFileWithoutDependencies(output_file);
 	    }
 	}
 
         /* Add task dependencies according to the dependency map */
 	auto d_map = itj->second->getDependencyMap();
 	auto t_map = itj->second->getTaskInstanceMap();
-	for (auto itd = d_map.begin(); itd != d_map.end(); ++itd) {
+	auto itd = d_map.begin();
+	while (itd != d_map.end() && this_time_out > 0) {
 	    auto child_range = t_map.equal_range(itd->first);
 	    auto parent_range = t_map.equal_range(itd->second);
-	    for (auto itc = child_range.first; itc != child_range.second; ++itc) {
-		for (auto itp = parent_range.first; itp != parent_range.second; ++itp) {
-		    tasks[itc->second]->addInputFile(itj->second->getFileByID(itp->second + "_output"));
+	    auto itc = child_range.first;
+	    while (itc != child_range.second && this_time_out > 0) {
+		auto itp = parent_range.first;
+		while (itp != parent_range.second && this_time_out > 0) {
+		    clock_t start_time = clock();
+		    tasks[itc->second]->addInputFileWithoutDependencies(itj->second->getFileByID(itp->second + "_output"));
+		    itj->second->addControlDependency(tasks[itp->second], tasks[itc->second]);
+	    	    this_time_out -= (double) (clock() - start_time)/CLOCKS_PER_SEC;
+		    itp++;
 		}
+		itc++;
 	    }
+	    itd++;
+	}
+	if (this_time_out <= 0 ) {
+	    std::cerr << "Time out! Skipped." << std::endl;
+	    num_skipped++;
+	    continue;
 	}
 
 	/* Add an input file to each root task */
@@ -172,7 +123,7 @@ int main(int argc, char **argv) {
 		input_file = itj->second->getFileByID(file_name);
 		std::cerr << "Got duplicate file!" << std::endl;
 	    } catch (const std::invalid_argument &ia) {
-		input_file = itj->second->addFile(file_name, generateFileSize(ite->second->getFlops()));
+		input_file = itj->second->addFile(file_name, itj->second->generateFileSize(ite->second->getFlops()));
 		ite->second->addInputFile(input_file);
 	    }
 	}
@@ -266,6 +217,7 @@ int main(int argc, char **argv) {
 	}
     }
 
+    std::cerr << "Skipped " << std::to_string(num_skipped) << "/" << std::to_string(jobs.size()) << " = " << std::to_string((double) num_skipped/jobs.size()*100) << "% jobs." << std::endl;
     return 0;
 
 }

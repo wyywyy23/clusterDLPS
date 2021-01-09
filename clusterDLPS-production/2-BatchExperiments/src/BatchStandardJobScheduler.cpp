@@ -44,10 +44,14 @@ namespace wrench {
 
         std::map<WorkflowFile *, std::shared_ptr<FileLocation>> file_locations;
         for (auto f : task->getInputFiles()) {
-          file_locations[f] = wrench::FileLocation::LOCATION(default_storage_service);
+	  std::string local_host = "";
+	  if (f->isOutput()){
+	    local_host = f->getOutputOf()->getExecutionHost();
+	  }
+          file_locations[f] = wrench::FileLocation::LOCATION(local_host.empty() ? hostname_to_storage_service["master"] : hostname_to_storage_service[local_host]);
         }
         for (auto f : task->getOutputFiles()) {
-          file_locations[f] = wrench::FileLocation::LOCATION(default_storage_service);
+          file_locations[f] = wrench::FileLocation::LOCATION(hostname_to_storage_service["master"]);
         }
 
         auto job = this->getJobManager()->createStandardJob(task, file_locations);

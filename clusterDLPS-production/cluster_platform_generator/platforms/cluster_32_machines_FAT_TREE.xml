@@ -5,8 +5,8 @@
         <cluster id="Computation" prefix="node-" radical="0-31" suffix="" speed="1f" core="96" bw="100Gbps" lat="20us" topology="FAT_TREE" topo_parameters="2;8,4;1,2;1,4" loopback_bw="1000EBps" loopback_lat="0" router_id="cluster_router" />
         <zone id="Master" routing="Full">
             <host id="master" speed="1f">
-                <disk id="cloud_disk" read_bw="4000MBps" write_bw="4000MBps">
-                    <prop id="size" value="32768GiB" />
+                <disk id="cloud_disk" read_bw="1000EBps" write_bw="1000EBps">
+                    <prop id="size" value="1000EB" />
                     <prop id="mount" value="/" />
                 </disk>
             </host>

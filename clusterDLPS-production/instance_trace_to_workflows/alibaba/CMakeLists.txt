@@ -16,6 +16,8 @@ find_library(WRENCH_LIBRARY NAMES wrench)
 find_library(SimGrid_LIBRARY NAMES simgrid)
 
 set(SOURCE_FILES
+	AlibabaJob.h
+	AlibabaJob.cpp
 	fast-cpp-csv-parser/csv.h
    )
 
