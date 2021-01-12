@@ -2,6 +2,7 @@
 #include <wrench-dev.h>
 #include <set>
 #include <map>
+#include <simgrid/plugins/load.h>
 #include "Simulator.h"
 #include "wyyWMS.h"
 #include "BatchStandardJobScheduler.h"
@@ -31,6 +32,14 @@ int Simulator::run(int argc, char** argv) {
 	exit(1);
     }
     std::cerr << "Instantiated a platform." << std::endl;
+
+    /* Select links for load tracking */
+    if (simgrid::s4u::Engine::is_initialized()) {
+	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
+	for (auto& link : e->get_all_links()) {
+	    sg_link_load_track(link);
+	}
+    }
 
     /* Instantiate one compute service on the WMS host for all nodes */
     std::vector<std::string> hostname_list = simulation->getHostnameList();
