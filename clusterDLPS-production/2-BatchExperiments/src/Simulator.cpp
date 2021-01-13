@@ -2,7 +2,8 @@
 #include <wrench-dev.h>
 #include <set>
 #include <map>
-#include <simgrid/plugins/load.h>
+#include <simgrid/plugins/dlps.h>
+#include <simgrid/s4u.hpp>
 #include "Simulator.h"
 #include "wyyWMS.h"
 #include "BatchStandardJobScheduler.h"
@@ -14,6 +15,11 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(wyy_simulator, "Log category for the main simulator
 using namespace wyy;
 
 int Simulator::run(int argc, char** argv) {
+
+    bool dlps_activated = false;
+    for (int i = 0; i < argc; i++) {
+	dlps_activated = strcmp(argv[i], "--activate-dlps") ? dlps_activated : true;
+    }
 
     auto simulation = new wrench::Simulation();
     simulation->init(&argc, argv);
@@ -34,10 +40,10 @@ int Simulator::run(int argc, char** argv) {
     std::cerr << "Instantiated a platform." << std::endl;
 
     /* Select links for load tracking */
-    if (simgrid::s4u::Engine::is_initialized()) {
+    if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
 	for (auto& link : e->get_all_links()) {
-	    sg_link_load_track(link);
+	    sg_dlps_enable(link);
 	}
     }
 

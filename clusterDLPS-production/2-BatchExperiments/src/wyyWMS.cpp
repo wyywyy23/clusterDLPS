@@ -102,9 +102,11 @@ namespace wrench {
                     local_host = f->getOutputOf()->getExecutionHost();
             	}
 	    	if (not local_host.empty()){
+		    if (not hostname_to_storage_service[local_host]->lookupFile(f, FileLocation::LOCATION(hostname_to_storage_service[local_host]))) {
             	    data_movement_manager->doSynchronousFileCopy(f,
 		        FileLocation::LOCATION(hostname_to_storage_service["master"]),
 		        FileLocation::LOCATION(hostname_to_storage_service[local_host]));
+		    }
 	    	}
 	    }
 	}
