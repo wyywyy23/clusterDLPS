@@ -223,37 +223,63 @@ int Simulator::run(int argc, char** argv) {
     std::cerr << "Simulation done!" << std::endl;
 
     /* Workflow completion info */ 
-    for (auto wms_serv : wms_services) {
-	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
-	// simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_execution.json", false, true, false, false, false, false, false);
-    }
-
-    /* Task completion trace */
-    std::vector<wrench::SimulationTimestamp<wrench::SimulationTimestampTaskCompletion> *> trace;
-    trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
-    WRENCH_INFO("Number of entries in TaskCompletion trace: %ld", trace.size());
 
     std::ofstream file;
     file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
     try {
 	file.open("output/task_execution.csv");
-	for (auto entry : trace) {
-	    file << entry->getContent()->getTask()->getWorkflow()->getName() << ","
-		 << entry->getContent()->getTask()->getID() << ","
-		 << entry->getContent()->getTask()->getExecutionHost() << ","
-		 << std::to_string(simulation->getHostNumCores(entry->getContent()->getTask()->getExecutionHost())) << ","
-		 << std::to_string(entry->getContent()->getTask()->getNumCoresAllocated()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getReadInputStartDate()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getReadInputEndDate()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getComputationStartDate()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getComputationEndDate()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getWriteOutputStartDate()) << ","
-		 << std::to_string(entry->getContent()->getTask()->getWriteOutputEndDate()) << std::endl;
-	}
-	file.close();
     } catch (const std::ofstream::failure &e) {
 	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+	throw;
     }
+
+    for (auto wms_serv : wms_services) {
+	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
+	// simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_execution.json", false, true, false, false, false, false, false);
+
+	auto wf = wms_serv->getWorkflow();
+	for (auto t : wf->getTasks()) {
+	    file << wf->getName() << ","
+		 << t->getID() << ","
+		 << t->getExecutionHost() << ","
+		 << std::to_string(simulation->getHostNumCores(t->getExecutionHost())) << ","
+		 << std::to_string(t->getNumCoresAllocated()) << ","
+		 << std::to_string(t->getReadInputStartDate()) << ","
+		 << std::to_string(t->getReadInputEndDate()) << ","
+		 << std::to_string(t->getComputationStartDate()) << ","
+		 << std::to_string(t->getComputationEndDate()) << ","
+		 << std::to_string(t->getWriteOutputStartDate()) << ","
+		 << std::to_string(t->getWriteOutputEndDate()) << std::endl;
+	}
+    }
+
+    file.close();
+//    /* Task completion trace */
+//    std::vector<wrench::SimulationTimestamp<wrench::SimulationTimestampTaskCompletion> *> trace;
+//    trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
+//    WRENCH_INFO("Number of entries in TaskCompletion trace: %ld", trace.size());
+
+//    std::ofstream file;
+//    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+//    try {
+//	file.open("output/task_execution.csv");
+//	for (auto entry : trace) {
+//	    file << entry->getContent()->getTask()->getWorkflow()->getName() << ","
+//		 << entry->getContent()->getTask()->getID() << ","
+//		 << entry->getContent()->getTask()->getExecutionHost() << ","
+//		 << std::to_string(simulation->getHostNumCores(entry->getContent()->getTask()->getExecutionHost())) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getNumCoresAllocated()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getReadInputStartDate()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getReadInputEndDate()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getComputationStartDate()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getComputationEndDate()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getWriteOutputStartDate()) << ","
+//		 << std::to_string(entry->getContent()->getTask()->getWriteOutputEndDate()) << std::endl;
+//	}
+//	file.close();
+ //   } catch (const std::ofstream::failure &e) {
+//	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+//    }
 
     return 0;
 }
