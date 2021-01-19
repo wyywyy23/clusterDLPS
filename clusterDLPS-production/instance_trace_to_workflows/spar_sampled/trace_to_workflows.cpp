@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 	    j_job["energy"] = -1;
 	    j_job["avgPower"] = -1;
 	    j_job["priority"] = 0;
-	    j_job["machine"] = "none";
+	    j_job["machine"] = "-1";
 	    
 	    nlohmann::json j_parents = nlohmann::json::array();
 	    auto parents = itt->second->getParents();

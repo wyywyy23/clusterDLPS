@@ -1,12 +1,19 @@
 #!/bin/bash
 
-for nMachines in 4 8 16 32 64
+START_OFFSET=48
+DURATION=24
+
+WORKFLOW_DIR=./output/workflows
+END=`expr ${DURATION} - 1`
+
+for (( START_HOUR=0; START_HOUR<=${END}; START_HOUR++ ))
 do	
-    WORKFLOW_DIR="./workflows/${nMachines}_machines"
-    mkdir -p ${WORKFLOW_DIR}
-    ./trace2workflows ${nMachines} 0.015
+    END_HOUR=`expr ${START_HOUR} + 1`
+    mkdir -p ${WORKFLOW_DIR}/${START_HOUR}-${END_HOUR}/
 
 #    for FILE in ${WORKFLOW_DIR}/*.json; do
 #	python workflow-schema/workflowhub-validator.py -s workflow-schema/workflowhub-schema.json -d ${FILE}
 #    done
-done	
+done
+
+./trace2workflows ${START_OFFSET} ${DURATION} 0.015

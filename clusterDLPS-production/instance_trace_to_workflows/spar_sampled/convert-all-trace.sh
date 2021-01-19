@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for nMachines in 4 8 16 32 64 4096
+for nMachines in 4 8 16 32 64
 do	
     WORKFLOW_DIR="./workflows/${nMachines}_machines"
     mkdir -p ${WORKFLOW_DIR}

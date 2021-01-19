@@ -249,7 +249,8 @@ int Simulator::run(int argc, char** argv) {
 		 << std::to_string(t->getComputationStartDate()) << ","
 		 << std::to_string(t->getComputationEndDate()) << ","
 		 << std::to_string(t->getWriteOutputStartDate()) << ","
-		 << std::to_string(t->getWriteOutputEndDate()) << std::endl;
+		 << std::to_string(t->getWriteOutputEndDate()) << ","
+		 << std::to_string(t->getStaticEndTime()) << std::endl;
 	}
     }
 

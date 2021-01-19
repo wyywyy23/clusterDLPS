@@ -1,17 +1,6 @@
+#include <algorithm>
 #include "AlibabaJob.h"
-
-
-std::vector<std::string> AlibabaJob::splitTaskNames(std::string task_name, std::string delimiter) {
-    std::vector<std::string> split_names;
-    size_t pos = 0;
-    while ((pos = task_name.find(delimiter)) != std::string::npos) {
-        split_names.push_back(task_name.substr(0, pos));
-        task_name.erase(0, pos + delimiter.length());
-    }
-    split_names.push_back(task_name);
-
-    return split_names;
-}
+#include "helper/helper.h"
 
 double AlibabaJob::generateFileSize(double exe_time) { // File size in KB
     return exe_time * 50000000;
@@ -36,7 +25,6 @@ void AlibabaJob::addControlDependency(wrench::WorkflowTask* src, wrench::Workflo
     }
 }
 
-
 void AlibabaJob::printPairs() { // only for debugging
     std::cerr << "Dependency pairs:" << std::endl;
     for (auto it = this->dependencies.begin(); it != this->dependencies.end(); ++it) {
@@ -49,15 +37,26 @@ void AlibabaJob::printPairs() { // only for debugging
     std::cerr << std::endl;
 }
 
-AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem) {
+AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, long start_time, long end_time, double avg_cpu, double avg_mem, long host_id) {
 
-    wrench::WorkflowTask* task = this->addTask(instance_name, duration, 1, 1, avg_mem);
+    wrench::WorkflowTask* task = this->addTask(instance_name, std::max((long) 0, end_time - start_time), 1, 1, avg_mem);
     task->setAverageCPU(avg_cpu);
+
+    /* Assign static host */
+    task->setStaticHost(host_id);
+
+    /* Static end time */
+    task->setStaticEndTime(end_time);
+
+    /* Update job start time */
+    if (start_time < this->getSubmittedTime()) {
+	this->setSubmittedTime(start_time);
+    }
 
     /* Remove first letter and split into individual task IDs */
     std::vector<std::string> split_names;
     if (task_name.length() < 4 || (task_name.length() >= 4 && task_name.substr(0, 4).compare("task") != 0)) {
-        split_names = splitTaskNames(task_name.erase(0,1), "_");
+        split_names = splitString(task_name.erase(0,1), "_");
     }
 
     if (split_names.size() > 0) {

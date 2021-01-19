@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <utility>
 #include <set>
@@ -12,59 +13,107 @@
 #include <wrench/util/UnitParser.h>
 
 #include "fast-cpp-csv-parser/csv.h"
+#include "helper/helper.h"
 
 #include "AlibabaJob.h"
 
 int main(int argc, char **argv) {
 
-    if (argc != 3) {
-	std::cerr << "Usage: " << argv[0] << "<number of machines> <time out in seconds>" << std::endl;
+    if (argc != 4) {
+	std::cerr << "Usage: " << argv[0] << "<start time offset (hrs)> <duration (hrs)> <time out (s)>" << std::endl;
 	exit(1);
     }
     
-    int num_machine = 4;
-    double time_out = std::atof(argv[2]);
-    try {
-	num_machine = std::atoi(argv[1]);
-    } catch (std::invalid_argument &e) {
-	std::cerr << "Invalid number of machines. Must be 2^{2:12}." << std::endl;
-	exit(1);
-    }
+    const int max_num_machine = 4096;
+    int start_time_offset = std::atoi(argv[1]);
+    int trace_duration = std::atoi(argv[2]);
+    double time_out = std::atof(argv[3]);
 
-    if (log2(num_machine) < 2 || log2(num_machine) > 12 || log2(num_machine) != (int) log2(num_machine)) {
-	std::cerr << "Invalid number of machines. Must be 2^{2:12}." << std::endl;
-        exit(1);
-    }
+    std::string trace_file_path = "trace/batch_instance.csv";
+    std::string output_path = "output/workflows/";
+
+    std::cerr << "Trace file:\t" << trace_file_path << std::endl;
+    std::cerr << "Output Path:\t" << output_path << std::endl;
+
+    /* Add another big offset to start time */
+//    start_time_offset = start_time_offset + 48;
 
     time_t rawtime;
     struct tm* timeinfo;
 
-    const int num_task_column = 7;
-    const int num_instance_column = 7;
+    const int num_instance_column = 14;
 
     /* Open instance trace */
-    io::CSVReader<num_task_column> task_trace(
-	    "trace/" + std::to_string(num_machine) + "_sample/batch_instace.csv");
+    io::CSVReader<num_instance_column> task_trace(trace_file_path);
     
-    double start_time;
-    std::string job_name;
-    std::string task_name;
     std::string instance_name;
-    double duration;
+    std::string task_name;
+    std::string job_name;
+    std::string task_type;
+    std::string status;
+    long start_time;
+    long end_time;
+    std::string machine_id;
+    long sequence_number;
+    long total_sequence_number;
     double avg_cpu;
+    double max_cpu;
     double avg_mem;
+    double max_mem;
 
     /* Initiate a map of workflows (jobs) as <jobID, workflow>*/
     std::map<std::string, AlibabaJob*> jobs;
+    std::map<std::string, bool> job_out_of_range;
 
-    while (task_trace.read_row(start_time, job_name, task_name, instance_name, duration, avg_cpu, avg_mem)) {
+    long lines_read = 0;
+    while (task_trace.read_row(instance_name, task_name, job_name, task_type, status, start_time, end_time, machine_id, sequence_number, total_sequence_number, avg_cpu, max_cpu, avg_mem, max_mem)) {
+
+	
+	std::cerr << "Read " << std::setw(10) << (double) ++lines_read / 1351255775 *100 << "\% of file...\t" << "# of valid jobs: " << jobs.size() << "\r";
+
+	/* Fix identical instance id by sequence number */
+	instance_name = instance_name + "_" + std::to_string(sequence_number);
+
+	/* Check start time in range */
+	if (job_out_of_range[job_name] == true) continue;
+	if (start_time <= start_time_offset * 3600 
+		or start_time > (start_time_offset + trace_duration) * 3600) {
+	    job_out_of_range[job_name] = true;
+	    if (jobs.find(job_name) != jobs.end()) {
+		jobs.erase(job_name);
+	    }
+	    continue;
+	}
+
+    	/* Get (long) static host id from machine_id */
+    	std::vector<std::string> machine_id_split = splitString(machine_id, "_");
+    	long host_id = std::stol(machine_id_split.back()) - 1;
+
+	/* Check machine in range */
+	if (host_id >= max_num_machine) {
+	    job_out_of_range[job_name] = true;
+	    if (jobs.find(job_name) != jobs.end()) {
+                jobs.erase(job_name);
+            }
+            continue;
+	}
+
+	/* Skip failed task */
+	if (status == "Failed") {
+	    continue;
+	}
+
+	std::cerr << "Read " << std::setw(10) << (double) lines_read / 1351255775 *100 << "\% of file...\t" << "# of valid jobs: " << jobs.size() << "\r";
+
+	start_time = start_time - start_time_offset * 3600;
+	end_time = end_time - start_time_offset * 3600;
 	if (jobs.empty() || jobs.find(job_name) == jobs.end()) { /* a new job */
 	    AlibabaJob* job = new AlibabaJob();
 	    job->setName(job_name);
 	    job->setSubmittedTime(start_time);
-	    jobs[job_name] = job->updateJob(task_name, instance_name, duration, avg_cpu, avg_mem);
+	    jobs[job_name] = job->updateJob(task_name, instance_name, start_time, end_time, avg_cpu, avg_mem, host_id);
 	} else { /* existing job */
-	    jobs[job_name] = jobs[job_name]->updateJob(task_name, instance_name, duration, avg_cpu, avg_mem);
+	    jobs[job_name] = jobs[job_name]->updateJob(task_name, instance_name, start_time, end_time, avg_cpu, avg_mem, host_id);
 	}
     }
     
@@ -145,7 +194,7 @@ int main(int argc, char **argv) {
 	j_workflow["makespan"] = -1;
 	j_workflow["executedAt"] = itj->second->getSubmittedTime();
 	nlohmann::json j_machines = nlohmann::json::array();
-	for (int idx_machine = 0; idx_machine < num_machine; idx_machine++) {
+	for (int idx_machine = 0; idx_machine < max_num_machine; idx_machine++) {
 	    nlohmann::json j_machine = nlohmann::json::object();
 	    j_machine["nodeName"] = "none";
 	    j_machine["system"] = "linux";
@@ -170,7 +219,8 @@ int main(int argc, char **argv) {
 	    j_job["energy"] = -1;
 	    j_job["avgPower"] = -1;
 	    j_job["priority"] = 0;
-	    j_job["machine"] = "none";
+	    j_job["machine"] = std::to_string(itt->second->getStaticHost());
+	    j_job["endTimeInTrace"] = itt->second->getStaticEndTime();
 	    
 	    nlohmann::json j_parents = nlohmann::json::array();
 	    auto parents = itt->second->getParents();
@@ -205,11 +255,11 @@ int main(int argc, char **argv) {
 	j["workflow"] = j_workflow;
 
 	/* Write a JSON file for each workflow*/
+	int start_hour = (itj->second->getSubmittedTime() - 1) / 3600;
 	std::ofstream file;
 	file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	try {
-	    file.open("workflows/" + std::to_string(num_machine) + "_machines/"
-	    	                  + itj->first + ".json");
+	    file.open(output_path + std::to_string(start_hour) + "-" + std::to_string(start_hour + 1) + "/" + itj->first + ".json");
 	    file << j.dump(4);
 	    file.close();
 	} catch (const std::ofstream::failure &e) {
