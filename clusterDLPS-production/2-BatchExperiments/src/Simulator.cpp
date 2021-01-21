@@ -25,12 +25,14 @@ int Simulator::run(int argc, char** argv) {
     auto simulation = new wrench::Simulation();
     simulation->init(&argc, argv);
 
-    if (argc != 5 and argc != 6) {
-        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <scheduling algorithm> [host selection algorithm]" << std::endl;
+    if (argc != 6 and argc != 7) {
+	std::cerr << argc << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines>  <scheduling algorithm> [host selection algorithm]" << std::endl;
         exit(1);
     }
 
     char* platform_file = argv[1];
+    double load_factor = std::atof(argv[4]) / 4096.0;
 
     try {
 	simulation->instantiatePlatform(platform_file);
@@ -73,10 +75,10 @@ int Simulator::run(int argc, char** argv) {
     try {
 	temp_batch_service = new wrench::BatchComputeService(
 		master_node, compute_nodes, "", {
-		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[4])},
+		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[5])},
 		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
 		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
-		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 5 ? "FIRSTFIT" : std::string(argv[5])},
+		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 6 ? "FIRSTFIT" : std::string(argv[6])},
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
@@ -167,7 +169,13 @@ int Simulator::run(int argc, char** argv) {
     std::set<shared_ptr<wrench::WMS>> wms_services;
     // std::map<std::shared_ptr<wrench::WMS>, std::shared_ptr<wrench::Workflow>> wms_workflow_map;
 
+    std::mt19937 rng;
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    rng.seed(std::atoi(argv[4]));
     for (auto workflow_file: workflow_files) {
+
+	if (dist(rng) > load_factor) continue;
+
 	wrench::Workflow* temp_workflow = createWorkflowFromFile(workflow_file);
 	if (!temp_workflow) {
 	    std::cerr << "Workflow creation failed." << std::endl;
@@ -224,20 +232,20 @@ int Simulator::run(int argc, char** argv) {
 
     /* Workflow completion info */ 
 
-    std::ofstream file;
+    /* std::ofstream file;
     file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
     try {
 	file.open("output/task_execution.csv");
     } catch (const std::ofstream::failure &e) {
 	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
 	throw;
-    }
+    } */
 
     for (auto wms_serv : wms_services) {
 	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
 	// simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_execution.json", false, true, false, false, false, false, false);
 
-	auto wf = wms_serv->getWorkflow();
+/*	auto wf = wms_serv->getWorkflow();
 	for (auto t : wf->getTasks()) {
 	    file << wf->getName() << ","
 		 << t->getID() << ","
@@ -250,37 +258,41 @@ int Simulator::run(int argc, char** argv) {
 		 << std::to_string(t->getComputationEndDate()) << ","
 		 << std::to_string(t->getWriteOutputStartDate()) << ","
 		 << std::to_string(t->getWriteOutputEndDate()) << ","
+		 << std::to_string(t->getStaticStartTime()) << ","
 		 << std::to_string(t->getStaticEndTime()) << std::endl;
-	}
+	} */
     }
 
-    file.close();
-//    /* Task completion trace */
-//    std::vector<wrench::SimulationTimestamp<wrench::SimulationTimestampTaskCompletion> *> trace;
-//    trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
-//    WRENCH_INFO("Number of entries in TaskCompletion trace: %ld", trace.size());
+    // file.close();
 
-//    std::ofstream file;
-//    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-//    try {
-//	file.open("output/task_execution.csv");
-//	for (auto entry : trace) {
-//	    file << entry->getContent()->getTask()->getWorkflow()->getName() << ","
-//		 << entry->getContent()->getTask()->getID() << ","
-//		 << entry->getContent()->getTask()->getExecutionHost() << ","
-//		 << std::to_string(simulation->getHostNumCores(entry->getContent()->getTask()->getExecutionHost())) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getNumCoresAllocated()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getReadInputStartDate()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getReadInputEndDate()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getComputationStartDate()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getComputationEndDate()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getWriteOutputStartDate()) << ","
-//		 << std::to_string(entry->getContent()->getTask()->getWriteOutputEndDate()) << std::endl;
-//	}
-//	file.close();
- //   } catch (const std::ofstream::failure &e) {
-//	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
-//    }
+    /* Task completion trace */
+    std::vector<wrench::SimulationTimestamp<wrench::SimulationTimestampTaskCompletion> *> trace;
+    trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
+    WRENCH_INFO("Number of entries in TaskCompletion trace: %ld", trace.size());
+
+    std::ofstream file;
+    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+    try {
+	file.open("output/task_execution.csv");
+	for (auto entry : trace) {
+	    file << entry->getContent()->getTask()->getWorkflow()->getName() << ","
+		 << entry->getContent()->getTask()->getID() << ","
+		 << entry->getContent()->getTask()->getExecutionHost() << ","
+		 << std::to_string(simulation->getHostNumCores(entry->getContent()->getTask()->getExecutionHost())) << ","
+		 << std::to_string(entry->getContent()->getTask()->getNumCoresAllocated()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getReadInputStartDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getReadInputEndDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getComputationStartDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getComputationEndDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getWriteOutputStartDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getWriteOutputEndDate()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getStaticStartTime()) << ","
+		 << std::to_string(entry->getContent()->getTask()->getStaticEndTime()) << std::endl;
+	}
+	file.close();
+    } catch (const std::ofstream::failure &e) {
+	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+    }
 
     return 0;
 }

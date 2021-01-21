@@ -3,7 +3,7 @@
 #include "helper/helper.h"
 
 double AlibabaJob::generateFileSize(double exe_time) { // File size in KB
-    return exe_time * 50000000;
+    return exe_time; // * 50000000;
 }
 
 void AlibabaJob::addControlDependency(wrench::WorkflowTask* src, wrench::WorkflowTask* dst, bool redundant_dependencies) {
@@ -47,6 +47,7 @@ AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_na
 
     /* Static end time */
     task->setStaticEndTime(end_time);
+    task->setStaticStartTime(start_time);
 
     /* Update job start time */
     if (start_time < this->getSubmittedTime()) {

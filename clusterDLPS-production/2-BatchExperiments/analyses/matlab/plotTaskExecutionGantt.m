@@ -15,6 +15,12 @@ write_end_timestamps = data{11};
 
 if isempty(jobs)
     jobs = unique(job_id);
+else
+    temp_jobs = [];
+    for i = 1:numel(jobs)
+       temp_jobs = [temp_jobs; {['j_', num2str(jobs(i))]}];
+    end
+    jobs = temp_jobs;
 end
 
 figure(fig);

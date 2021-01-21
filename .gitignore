@@ -35,5 +35,6 @@ clusterDLPS-production/**/original/output/
 **/wrench-example-*
 **/cluster-multiple-wms
 **/trace2workflows
+**/trace2swf
 **/generate-platform
 **/wyy_simulator

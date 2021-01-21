@@ -15,7 +15,7 @@ include_directories(src/ include/ /usr/local/include /usr/local/include/wrench $
 find_library(WRENCH_LIBRARY NAMES wrench)
 find_library(SimGrid_LIBRARY NAMES simgrid)
 
-set(SOURCE_FILES
+set(SOURCE_FILES_WORKFLOWS
 	AlibabaJob.h
 	AlibabaJob.cpp
 	helper/helper.h
@@ -23,7 +23,13 @@ set(SOURCE_FILES
 	fast-cpp-csv-parser/csv.h
    )
 
-set(MAIN_FILE trace_to_workflows.cpp)
+set(SOURCE_FILES_SWF
+	helper/helper.h
+	helper/splitString.cpp
+	fast-cpp-csv-parser/csv.h
+   )
 
-add_executable(trace2workflows ${SOURCE_FILES} ${MAIN_FILE})
+add_executable(trace2workflows ${SOURCE_FILES_WORKFLOWS} trace_to_workflows.cpp)
 target_link_libraries(trace2workflows ${WRENCH_LIBRARY} ${SimGrid_LIBRARY})
+
+add_executable(trace2swf ${SOURCE_FILES_SWF} trace_to_swf.cpp)

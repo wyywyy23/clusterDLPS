@@ -5,7 +5,7 @@ function [data] = readTaskExecutionTrace(trace_file)
 rid = fopen(trace_file, 'r');
 if rid ~= -1
     
-    data = textscan(rid, 'j_%d %s node-%d %d %d %f %f %f %f %f %f %f',...
+    data = textscan(rid, '%s %s node-%d %d %d %f %f %f %f %f %f %f %f',...
                          'delimiter', ',');
     
     fclose(rid);
