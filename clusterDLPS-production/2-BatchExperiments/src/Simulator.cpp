@@ -188,7 +188,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file
+		    nullptr, compute_services, storage_services, file_registry_service, compute_nodes.front(), hostname_to_storage_service, workflow_file
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;

@@ -49,7 +49,7 @@ namespace wrench {
 	  if (f->isOutput()){
 	    local_host = f->getOutputOf()->getExecutionHost();
 	  }
-          file_locations[f] = wrench::FileLocation::LOCATION(local_host.empty() ? hostname_to_storage_service["master"] : hostname_to_storage_service[local_host]);
+          file_locations[f] = wrench::FileLocation::LOCATION(local_host.empty() ? hostname_to_storage_service[this->getJobManager()->getHostname()] : hostname_to_storage_service[local_host]);
         }
         for (auto f : task->getOutputFiles()) {
           file_locations[f] = wrench::FileLocation::LOCATION(hostname_to_storage_service["master"]);

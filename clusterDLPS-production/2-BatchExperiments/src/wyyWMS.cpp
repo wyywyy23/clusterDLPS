@@ -68,7 +68,7 @@ namespace wrench {
 
       for (auto const &f : this->getWorkflow()->getInputFiles()) {
 	    try {
-		this->simulation->stageFile(f, hostname_to_storage_service["master"]);
+		this->simulation->stageFile(f, hostname_to_storage_service[this->getHostname()]);
 		WRENCH_DEBUG("Staged input file %s", f->getID().c_str());
 	    } catch (std::runtime_error &e) {
 		WRENCH_DEBUG("%s", e.what());
@@ -120,14 +120,18 @@ namespace wrench {
                 std::string local_host = "";
                 if (f->isOutput()){
                     local_host = f->getOutputOf()->getExecutionHost();
-            	}
-	    	if (not local_host.empty()){
-		    if (not hostname_to_storage_service[local_host]->lookupFile(f, FileLocation::LOCATION(hostname_to_storage_service[local_host]))) {
-            	    data_movement_manager->doSynchronousFileCopy(f,
-		        FileLocation::LOCATION(hostname_to_storage_service["master"]),
-		        FileLocation::LOCATION(hostname_to_storage_service[local_host]));
+	    	    if (not local_host.empty()){
+		        if (not hostname_to_storage_service[local_host]->lookupFile(f, FileLocation::LOCATION(hostname_to_storage_service[local_host]))) {
+            	        data_movement_manager->doSynchronousFileCopy(f,
+		            FileLocation::LOCATION(hostname_to_storage_service["master"]),
+		            FileLocation::LOCATION(hostname_to_storage_service[local_host]));
+		        }
+	    	    } else {
+            	        data_movement_manager->doSynchronousFileCopy(f,
+		            FileLocation::LOCATION(hostname_to_storage_service["master"]),
+		            FileLocation::LOCATION(hostname_to_storage_service[this->getHostname()]));
 		    }
-	    	}
+		}
 	    }
 	}
         this->getStandardJobScheduler()->scheduleTasks(this->getAvailableComputeServices<ComputeService>(), ready_tasks);
