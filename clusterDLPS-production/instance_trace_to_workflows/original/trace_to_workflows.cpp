@@ -33,7 +33,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 	try {
 	    output_file = job->getFileByID(file_name);
 	} catch (const std::invalid_argument &ia) {
-	    output_file = job->addFile(file_name, job->generateFileSize(itt->second->getFlops()));
+	    output_file = job->addFile(file_name, 0);
 	    itt->second->addOutputFileWithoutDependencies(output_file);
 	}
     }
@@ -71,10 +71,25 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 	try {
 	    input_file = job->getFileByID(file_name);
 	} catch (const std::invalid_argument &ia) {
-	    input_file = job->addFile(file_name, job->generateFileSize(ite->second->getFlops()));
-	    ite->second->addInputFile(input_file);
+	    input_file = job->addFile(file_name, 0);
+	    ite->second->addInputFileWithoutDependencies(input_file);
 	}
     }
+
+    /* Update file size according to tast execution time */
+    auto all_files = job->getFiles();
+    for (auto file : all_files ) {
+	auto child_tasks = file->getInputOf();
+	if (not child_tasks.empty()) {
+	    double avg_flops = 0;
+	    for (auto itt = child_tasks.begin(); itt != child_tasks.end(); ++itt) {
+		avg_flops += itt->second->getFlops();
+	    }
+	    avg_flops = avg_flops / child_tasks.size();
+	    file->setSize(job->generateFileSize(avg_flops));
+	}
+    }
+
 
     /* Create JSON structure*/
     nlohmann::json j;

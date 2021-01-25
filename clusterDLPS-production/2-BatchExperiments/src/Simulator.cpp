@@ -5,6 +5,7 @@
 #include <map>
 #include <simgrid/plugins/dlps.h>
 #include <simgrid/s4u.hpp>
+#include <nlohmann/json.hpp>
 #include "Simulator.h"
 #include "wyyWMS.h"
 #include "BatchStandardJobScheduler.h"
@@ -176,25 +177,25 @@ int Simulator::run(int argc, char** argv) {
 
 	if (dist(rng) > load_factor) continue;
 
-	wrench::Workflow* temp_workflow = createWorkflowFromFile(workflow_file);
+	/* wrench::Workflow* temp_workflow = createWorkflowFromFile(workflow_file);
 	if (!temp_workflow) {
 	    std::cerr << "Workflow creation failed." << std::endl;
 	    exit(1);
 	}
-	WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
+	WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime()); */
 
 	wrench::WMS* temp_wms = nullptr;
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service
+		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
 	    exit(1);
 	}
 	WRENCH_DEBUG("Instantiated a WMS for %s.", workflow_file.c_str());
-	temp_wms->addWorkflow(temp_workflow, temp_workflow->getSubmittedTime());
+	temp_wms->setStartTime(getSubmittedTimeFromFile(workflow_file));
 	wms_services.insert(simulation->add(temp_wms));
     }
     std::cerr << "Instantiated a WMS for each workflow generated." << std::endl;
@@ -206,7 +207,7 @@ int Simulator::run(int argc, char** argv) {
     }
 
     /* Stage input files for all workflows */
-    for (auto wms_serv : wms_services) {
+    /* for (auto wms_serv : wms_services) {
 	for (auto const &f : wms_serv->getWorkflow()->getInputFiles()) {
 	    try {
 		simulation->stageFile(f, hostname_to_storage_service[master_node]);
@@ -217,7 +218,7 @@ int Simulator::run(int argc, char** argv) {
 	    }
 	}
     }
-    std::cerr << "Staged input files to the master storage." << std::endl;
+    std::cerr << "Staged input files to the master storage." << std::endl; */
 
     /* Launch the simulation */
     std::cerr << "Launching the simulation..." << std::endl;
@@ -241,8 +242,8 @@ int Simulator::run(int argc, char** argv) {
 	throw;
     } */
 
-    for (auto wms_serv : wms_services) {
-	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
+//    for (auto wms_serv : wms_services) {
+//	WRENCH_DEBUG("Job %s\tmakespan %f", wms_serv->getWorkflow()->getName().c_str(), wms_serv->getWorkflow()->getCompletionDate() - wms_serv->getWorkflow()->getSubmittedTime());
 	// simulation->getOutput().dumpUnifiedJSON(wms_serv->getWorkflow(), "output/workflow_" + wms_serv->getWorkflow()->getName() + "_execution.json", false, true, false, false, false, false, false);
 
 /*	auto wf = wms_serv->getWorkflow();
@@ -261,7 +262,7 @@ int Simulator::run(int argc, char** argv) {
 		 << std::to_string(t->getStaticStartTime()) << ","
 		 << std::to_string(t->getStaticEndTime()) << std::endl;
 	} */
-    }
+//    }
 
     // file.close();
 
@@ -270,7 +271,7 @@ int Simulator::run(int argc, char** argv) {
     trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
     WRENCH_INFO("Number of entries in TaskCompletion trace: %ld", trace.size());
 
-    std::ofstream file;
+    /* std::ofstream file;
     file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
     try {
 	file.open("output/task_execution.csv");
@@ -292,12 +293,41 @@ int Simulator::run(int argc, char** argv) {
 	file.close();
     } catch (const std::ofstream::failure &e) {
 	std::cerr << "Cannot open file for output: " << e.what() << std::endl;
-    }
+    } */
 
     return 0;
 }
 
-wrench::Workflow* Simulator::createWorkflowFromFile(std::string& workflow_file) {
+unsigned int Simulator::getSubmittedTimeFromFile(std::string& workflow_file) {
+
+    unsigned int submitted_time = 0;
+    if (endWith(workflow_file, "json")) {
+	std::ifstream file;
+	nlohmann::json j;
+	file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	try {
+	    file.open(workflow_file);
+	    file >> j;
+	} catch (const std::ifstream::failure &e) {
+	    throw std::invalid_argument("Cannot get workflow submitted time from file.");
+	}
+
+	try {
+	    nlohmann::json workflowJobs = j.at("workflow");
+	    submitted_time = workflowJobs.at("executedAt");
+	} catch (nlohmann::json::out_of_range &e) {
+	    std::cerr << "No entry executedAt. WMS defer set to 0." << std::endl;
+	}
+	
+    } else if (endWith(workflow_file, "dax")) {
+    } else {
+	std::cerr << "Cannot read from " << workflow_file << ": not supporting formats other than .json and .dax" << std::endl;
+    }
+
+    return submitted_time;
+}
+
+/* wrench::Workflow* Simulator::createWorkflowFromFile(std::string& workflow_file) {
 
     wrench::Workflow* workflow = nullptr;
 
@@ -319,5 +349,5 @@ wrench::Workflow* Simulator::createWorkflowFromFile(std::string& workflow_file) 
     }
 
     return workflow;
-}
+} */
 

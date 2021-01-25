@@ -10,7 +10,8 @@ namespace wyy {
     public:
 
         int run(int argc, char** argv);
-	wrench::Workflow* createWorkflowFromFile(std::string &);
+	unsigned int getSubmittedTimeFromFile(std::string&);
+	// wrench::Workflow* createWorkflowFromFile(std::string &);
     };
 
 }

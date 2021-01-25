@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "wyyWMS.h"
+#include "helper/endWith.h"
 
 WRENCH_LOG_CATEGORY(wyy_wms, "Log category for wyyWMS");
 
@@ -31,7 +32,8 @@ namespace wrench {
                          const std::set<std::shared_ptr<StorageService>> &storage_services,
 			 const std::shared_ptr<FileRegistryService> file_registry_service,
                          const std::string &hostname,
-			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service) : WMS(
+			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
+			 const std::string &workflow_file) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -40,6 +42,7 @@ namespace wrench {
             hostname,
             "wyy") {
 	this->hostname_to_storage_service = hostname_to_storage_service;
+	this->workflow_file = workflow_file;
 	}
 
     /**
@@ -55,9 +58,26 @@ namespace wrench {
       
       // Check whether the WMS has a deferred start time
       checkDeferredStart();
+      Workflow* temp_workflow = createWorkflowFromFile(workflow_file);
+      if (!temp_workflow) {
+	    throw std::runtime_error("Failed to create a workflow from file.");
+      }
+      WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
 
-      WRENCH_INFO("Starting on host %s", S4U_Simulation::getHostName().c_str());
-      WRENCH_INFO("About to execute a workflow with %lu tasks", this->getWorkflow()->getNumberOfTasks());
+      this->addWorkflow(temp_workflow, temp_workflow->getSubmittedTime());
+
+      for (auto const &f : this->getWorkflow()->getInputFiles()) {
+	    try {
+		this->simulation->stageFile(f, hostname_to_storage_service["master"]);
+		WRENCH_DEBUG("Staged input file %s", f->getID().c_str());
+	    } catch (std::runtime_error &e) {
+		WRENCH_DEBUG("%s", e.what());
+		throw std::runtime_error("Cannot stage input file");
+	    }
+      }
+
+      WRENCH_DEBUG("Starting on host %s", S4U_Simulation::getHostName().c_str());
+      WRENCH_DEBUG("About to execute a workflow with %lu tasks", this->getWorkflow()->getNumberOfTasks());
 
       // Create a job manager
       this->job_manager = this->createJobManager();
@@ -80,13 +100,13 @@ namespace wrench {
         auto compute_services = this->getAvailableComputeServices<ComputeService>();
 
         if (compute_services.empty()) {
-          WRENCH_INFO("Aborting - No compute services available!");
+          WRENCH_DEBUG("Aborting - No compute services available!");
           break;
         }
 
         // Submit pilot jobs
         if (this->getPilotJobScheduler()) {
-          WRENCH_INFO("Scheduling pilot jobs...");
+          WRENCH_DEBUG("Scheduling pilot jobs...");
           this->getPilotJobScheduler()->schedulePilotJobs(this->getAvailableComputeServices<ComputeService>());
         }
 
@@ -94,7 +114,7 @@ namespace wrench {
         runDynamicOptimizations();
 
         // Run ready tasks with defined scheduler implementation
-        WRENCH_INFO("Scheduling tasks...");
+        WRENCH_DEBUG("Scheduling tasks...");
 	for (auto task: ready_tasks) {
 	    for (auto f : task->getInputFiles()) {
                 std::string local_host = "";
@@ -116,7 +136,7 @@ namespace wrench {
         try {
           this->waitForAndProcessNextEvent();
         } catch (WorkflowExecutionException &e) {
-          WRENCH_INFO("Error while getting next execution event (%s)... ignoring and trying again",
+          WRENCH_DEBUG("Error while getting next execution event (%s)... ignoring and trying again",
                       (e.getCause()->toString().c_str()));
           continue;
         }
@@ -127,15 +147,34 @@ namespace wrench {
 
       // S4U_Simulation::sleep(10);
 
-      WRENCH_INFO("--------------------------------------------------------");
+      WRENCH_DEBUG("--------------------------------------------------------");
       if (this->getWorkflow()->isDone()) {
-        WRENCH_INFO("Workflow execution is complete!");
+        WRENCH_DEBUG("Workflow execution is complete!");
       } else {
-        WRENCH_INFO("Workflow execution is incomplete!");
+        WRENCH_DEBUG("Workflow execution is incomplete!");
       }
 
-      WRENCH_INFO("wyyWMS Daemon started on host %s terminating", S4U_Simulation::getHostName().c_str());
+      WRENCH_DEBUG("wyyWMS Daemon started on host %s terminating", S4U_Simulation::getHostName().c_str());
 
+      for (auto t : temp_workflow->getTasks()) {
+	WRENCH_INFO("%s,%s,%s,%ld,%ld,%f,%f,%f,%f,%f,%f,%f,%f\n",
+		this->getWorkflow()->getName().c_str(),
+		t->getID().c_str(),
+		t->getExecutionHost().c_str(),
+		simulation->getHostNumCores(t->getExecutionHost()),
+		t->getNumCoresAllocated(),
+		t->getReadInputStartDate(),
+		t->getReadInputEndDate(),
+		t->getComputationStartDate(),
+		t->getComputationEndDate(),
+		t->getWriteOutputStartDate(),
+		t->getWriteOutputEndDate(),
+		t->getStaticStartTime(),
+		t->getStaticEndTime()
+	);
+	temp_workflow->removeTask(t);
+      }
+      delete temp_workflow;
       this->job_manager.reset();
 
       return 0;
@@ -148,10 +187,37 @@ namespace wrench {
      */
     void wyyWMS::processEventStandardJobFailure(std::shared_ptr<StandardJobFailedEvent> event) {
       auto job = event->standard_job;
-      WRENCH_INFO("Notified that a standard job has failed (all its tasks are back in the ready state)");
-      WRENCH_INFO("CauseType: %s", event->failure_cause->toString().c_str());
-      WRENCH_INFO("As wyyWMS, I abort as soon as there is a failure");
+      WRENCH_DEBUG("Notified that a standard job has failed (all its tasks are back in the ready state)");
+      WRENCH_DEBUG("CauseType: %s", event->failure_cause->toString().c_str());
+      WRENCH_DEBUG("As wyyWMS, I abort as soon as there is a failure");
       this->abort = true;
     }
 
+    Workflow* wyyWMS::createWorkflowFromFile(std::string& workflow_file) {
+
+      Workflow* workflow = nullptr;
+
+      if (endWith(workflow_file, "json")) {
+	try {
+	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
+	} catch (std::invalid_argument &e) {
+	  std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
+	}
+      } else if (endWith(workflow_file, "dax")) {
+	try {
+	  workflow = PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f");
+	} catch (std::invalid_argument &e) {
+	    std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
+	}
+
+      } else {
+	std::cerr << "Cannot create a workflow from " << workflow_file << ": not supporting formats other than .json and .dax" << std::endl;
+      }
+
+      return workflow;
+    }
+
+
 }
+
+
