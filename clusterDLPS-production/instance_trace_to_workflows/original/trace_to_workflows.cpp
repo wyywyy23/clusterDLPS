@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     int dump_interval = std::atoi(argv[4]);
 
     std::string trace_file_path = "trace/batch_instance.csv";
-    std::string output_path = "output/workflows/";
+    std::string output_path = "output/workflows_more/";
 
     std::cerr << "Trace file:\t" << trace_file_path << std::endl;
     std::cerr << "Output Path:\t" << output_path << std::endl;

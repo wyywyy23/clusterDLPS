@@ -1,9 +1,9 @@
 #!/bin/bash
 
 START_OFFSET=48
-DURATION=24
+DURATION=1
 
-WORKFLOW_DIR=./output/workflows
+WORKFLOW_DIR=./output/workflows_more
 END=`expr ${DURATION} - 1`
 
 for (( START_HOUR=0; START_HOUR<=${END}; START_HOUR++ ))
