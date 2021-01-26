@@ -33,7 +33,8 @@ namespace wrench {
 			 const std::shared_ptr<FileRegistryService> file_registry_service,
                          const std::string &hostname,
 			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
-			 const std::string &workflow_file) : WMS(
+			 const std::string &workflow_file,
+			 long param_a, long param_b) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -43,6 +44,8 @@ namespace wrench {
             "wyy") {
 	this->hostname_to_storage_service = hostname_to_storage_service;
 	this->workflow_file = workflow_file;
+	this->param_a = param_a;
+	this->param_b = param_b;
 	}
 
     /**
@@ -203,7 +206,7 @@ namespace wrench {
 
       if (endWith(workflow_file, "json")) {
 	try {
-	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
+	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, param_a, param_b);
 	} catch (std::invalid_argument &e) {
 	  std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
 	}
