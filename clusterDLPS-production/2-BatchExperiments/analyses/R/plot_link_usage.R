@@ -11,4 +11,4 @@ data <- distinct(data)
 
 str(data)
 
-data %>% filter(event_type == "usage") %>% ggplot(aes(x=time, y=value)) + geom_step() + facet_wrap(~link_id)
+data %>% filter(event_type == "usage") %>% filter(time >= 0) %>% filter(time <= 4000) %>% ggplot(aes(x=time, y=value)) + geom_step() + facet_wrap(~link_id)
