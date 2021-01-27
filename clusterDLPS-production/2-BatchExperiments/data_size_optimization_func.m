@@ -5,7 +5,7 @@ function rmse = data_size_optimization_func(x, hour, n)
 param = [x.param_1, x.param_2] * 1000000;
 rmse = 0;
 
-%while hour < 24
+while hour < 8
     
     command = ['./wyy_simulator platforms/cluster_4096_machines_FAT_TREE.xml ',...
         '../instance_trace_to_workflows/original/output/swf/container_trace.swf ',...
@@ -26,9 +26,9 @@ rmse = 0;
     
     data = readTaskExecutionTrace('output/task_execution.csv');
     rmse = rmse + sqrt(mean((data{9}-data{13}).^2));
-%    hour = hour + 1;
+    hour = hour + 1;
     
-%end
+end
 
 end
 
