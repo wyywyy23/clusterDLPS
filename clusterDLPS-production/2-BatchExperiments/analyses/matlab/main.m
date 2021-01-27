@@ -11,4 +11,4 @@ f1 = figure;
 [f1, r1, d1, r2, d2] = plotTaskExecutionCumulative(task_execution_data, f1);
 
 f2 = figure;
-plotTaskExecutionGantt(task_execution_data, f2, []);
+plotTaskExecutionGantt(task_execution_data, f2, [3]);
