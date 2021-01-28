@@ -46,12 +46,12 @@ int Simulator::run(int argc, char** argv) {
     /* Select links for load tracking */
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
-//	for (auto link : e->get_all_links()) {
-//	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
-//	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
-//	    sg_dlps_enable(link);
-//	}
-	sg_dlps_enable(e->link_by_name("link_from_0_-1_0"));
+	for (auto link : e->get_all_links()) {
+	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
+	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
+	    sg_dlps_enable(link);
+	}
+//	sg_dlps_enable(e->link_by_name("link_from_-1_-9_64"));
     }
 
     /* Instantiate one compute service on the WMS host for all nodes */

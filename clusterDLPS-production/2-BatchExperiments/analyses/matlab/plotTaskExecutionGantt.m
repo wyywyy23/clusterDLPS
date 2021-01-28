@@ -1,4 +1,4 @@
-function [fig, h] = plotTaskExecutionGantt(data, fig, jobs)
+function [fig] = plotTaskExecutionGantt(data, fig, jobs)
 % Plot task execution gannt chart vs. time, return figure handle
 %   TBD
 job_id = data{1};
