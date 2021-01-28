@@ -2,6 +2,9 @@ function [fig] = plotLinkUsage(data, fig, max_plots)
 %PLOTLINKUSAGE Summary of this function goes here
 %   Detailed explanation goes here
 
+data{4} = padarray(data{4}, length(data{3}) - length(data{4}), 'post');
+data{5} = padarray(data{5}, length(data{3}) - length(data{5}), 'post');
+
 data = [data{3}, data{4}, data{5}];
 data = unique(data, 'rows');
 
