@@ -18,6 +18,8 @@ find_library(SimGrid_LIBRARY NAMES simgrid)
 set(SOURCE_FILES
 	AlibabaJob.h
 	AlibabaJob.cpp
+        helper/helper.h
+        helper/splitString.cpp
 	fast-cpp-csv-parser/csv.h
    )
 

@@ -12,8 +12,170 @@
 #include <wrench/util/UnitParser.h>
 
 #include "fast-cpp-csv-parser/csv.h"
+#include "helper/helper.h"
 
 #include "AlibabaJob.h"
+
+int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
+    double this_time_out = time_out;
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    /* Add an output file to each task instance */
+    auto tasks = job->getTaskMap();
+    for (auto itt = tasks.begin(); itt != tasks.end(); ++itt) {
+	wrench::WorkflowFile* output_file = nullptr;
+	std::string file_name = itt->first + "_output";
+	try {
+	    output_file = job->getFileByID(file_name);
+	} catch (const std::invalid_argument &ia) {
+	    output_file = job->addFile(file_name, 0);
+	    itt->second->addOutputFileWithoutDependencies(output_file);
+	}
+    }
+
+    /* Add task dependencies according to the dependency map */
+    auto d_map = job->getDependencyMap();
+    auto t_map = job->getTaskInstanceMap();
+    auto itd = d_map.begin();
+    while (itd != d_map.end() && this_time_out > 0) {
+	auto child_range = t_map.equal_range(itd->first);
+	auto parent_range = t_map.equal_range(itd->second);
+	auto itc = child_range.first;
+	while (itc != child_range.second && this_time_out > 0) {
+	    auto itp = parent_range.first;
+	    while (itp != parent_range.second && this_time_out > 0) {
+		clock_t time_out_start = clock();
+		tasks[itc->second]->addInputFileWithoutDependencies(job->getFileByID(itp->second + "_output"));
+		job->addControlDependency(tasks[itp->second], tasks[itc->second]);
+	    	this_time_out -= (double) (clock() - time_out_start)/CLOCKS_PER_SEC;
+		itp++;
+	    }
+	    itc++;
+	}
+	itd++;
+    }
+    if (this_time_out <= 0 ) {
+	return 0;
+    }
+
+    /* Add an input file to each root task */
+    auto entry_tasks = job->getEntryTaskMap();
+    for (auto ite = entry_tasks.begin(); ite != entry_tasks.end(); ++ite) {
+	wrench::WorkflowFile* input_file = nullptr;
+	std::string file_name = ite->first + "_input";
+	try {
+	    input_file = job->getFileByID(file_name);
+	} catch (const std::invalid_argument &ia) {
+	    input_file = job->addFile(file_name, 0);
+	    ite->second->addInputFileWithoutDependencies(input_file);
+	}
+    }
+
+    /* Update file size according to task execution time */
+    auto all_files = job->getFiles();
+    for (auto file : all_files ) {
+	auto child_tasks = file->getInputOf();
+	if (not child_tasks.empty()) {
+	    double avg_flops = 0;
+	    for (auto itt = child_tasks.begin(); itt != child_tasks.end(); ++itt) {
+		avg_flops += itt->second->getFlops();
+	    }
+	    avg_flops = avg_flops / child_tasks.size();
+	    file->setSize(job->generateFileSize(avg_flops));
+	}
+    }
+
+
+    /* Create JSON structure*/
+    nlohmann::json j;
+    j["name"] = job->getName();
+    j["description"] = "This job contains " + std::to_string(job->getNumberOfTasks()) + " tasks.";
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    char buffer [80];
+    strftime(buffer, 80, "%FT%T%z", timeinfo);
+    j["createdAt"] = buffer;
+    j["schemaVersion"] = "1.0";
+    j["author"] = {{"name", "Yuyang Wang"}, {"email", "wyy@ece.ucsb.edu"}, {"institution", "University of California, Santa Barbara"}, {"country", "US"}};
+    j["wms"] = {{"name", "none"}, {"url", "none"}, {"version", "none"}};
+
+    nlohmann::json j_workflow = nlohmann::json::object();
+    j_workflow["makespan"] = -1;
+    j_workflow["executedAt"] = job->getSubmittedTime();
+ /* nlohmann::json j_machines = nlohmann::json::array();
+ *     for (int idx_machine = 0; idx_machine < max_num_machine; idx_machine++) {
+ *         nlohmann::json j_machine = nlohmann::json::object();
+ *         j_machine["nodeName"] = "none";
+ *     	   j_machine["system"] = "linux";
+ *     	   j_machine["architecture"] = "x86_64";
+ *     	   j_machine["release"] = "none";
+ *         j_machine["memory"] = 100;
+ *     	   j_machine["cpu"] = {{"count", 96}, {"vendor", "none"}, {"speed", 2000}};
+ *     	   j_machines.insert(j_machines.end(), j_machine);
+ *     }
+ *     j_workflow["machines"] = j_machines; */
+
+    nlohmann::json j_jobs = nlohmann::json::array();
+    for (auto itt = tasks.begin(); itt != tasks.end(); ++itt) {
+	nlohmann::json j_job = nlohmann::json::object();
+	j_job["name"] = itt->first;
+	j_job["type"] = "compute";
+	j_job["arguments"] = nlohmann::json::array({"none"});
+	j_job["runtime"] = itt->second->getFlops();
+	j_job["cores"] = 1;
+	j_job["avgCPU"] = itt->second->getAverageCPU();
+	j_job["memory"] = itt->second->getMemoryRequirement()*100;
+	j_job["energy"] = -1;
+	j_job["avgPower"] = -1;
+	j_job["priority"] = 0;
+	j_job["machine"] = "-1";
+ 
+	nlohmann::json j_parents = nlohmann::json::array();
+	auto parents = itt->second->getParents();
+	for (auto p : parents) {
+	    j_parents.insert(j_parents.end(), p->getID());
+	}
+	j_job["parents"] = j_parents;
+
+	nlohmann::json j_files = nlohmann::json::array();
+	auto input_files = itt->second->getInputFiles();
+	double bytes_read = 0;
+	for (auto f: input_files) {
+	    j_files.insert(j_files.end(), nlohmann::json::object(
+		{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "input"}}));
+	    bytes_read += f->getSize();
+	}
+	auto output_files = itt->second->getOutputFiles();
+	double bytes_written = 0;
+	for (auto f: output_files) {
+	    j_files.insert(j_files.end(), nlohmann::json::object(
+		{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "output"}}));
+	    bytes_written += f->getSize();
+	}
+	j_job["files"] = j_files;
+	j_job["bytesRead"] = bytes_read;
+	j_job["bytesWritten"] = bytes_written;
+
+	j_jobs.insert(j_jobs.end(), j_job);
+    }
+    j_workflow["jobs"] = j_jobs;
+
+    j["workflow"] = j_workflow;
+
+    /* Write a JSON file for each workflow*/
+    std::ofstream file;
+    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+    try {
+	file.open(output_path + job->getName() + ".json");
+	file << j.dump(4);
+	file.close();
+    } catch (const std::ofstream::failure &e) {
+	throw std::invalid_argument("Cannot open file for output!");
+    }
+
+    return 1;
+}
 
 int main(int argc, char **argv) {
 
@@ -35,6 +197,8 @@ int main(int argc, char **argv) {
 	std::cerr << "Invalid number of machines. Must be 2^{2:12}." << std::endl;
         exit(1);
     }
+
+    std::string output_path = "workflows_with_bogus_file_size/" + std::to_string(num_machine) + "_machines/";
 
     time_t rawtime;
     struct tm* timeinfo;
@@ -70,151 +234,8 @@ int main(int argc, char **argv) {
     
     long num_skipped = 0;
     for (auto itj = jobs.begin(); itj != jobs.end(); ++itj) {
-	cerr << "Generating JSON for " <<itj->first << "..." << std::endl;
-	double this_time_out = time_out;
-
-	/* Add an output file to each task instance */
-	auto tasks = itj->second->getTaskMap();
-	for (auto itt = tasks.begin(); itt != tasks.end(); ++itt) {
-	    wrench::WorkflowFile* output_file = nullptr;
-	    std::string file_name = itt->first + "_output";
-	    try {
-		output_file = itj->second->getFileByID(file_name);
-		std::cerr << "Got duplicate file!" << std::endl;
-	    } catch (const std::invalid_argument &ia) {
-	        output_file = itj->second->addFile(file_name, itj->second->generateFileSize(itt->second->getFlops()));
-		itt->second->addOutputFileWithoutDependencies(output_file);
-	    }
-	}
-
-        /* Add task dependencies according to the dependency map */
-	auto d_map = itj->second->getDependencyMap();
-	auto t_map = itj->second->getTaskInstanceMap();
-	auto itd = d_map.begin();
-	while (itd != d_map.end() && this_time_out > 0) {
-	    auto child_range = t_map.equal_range(itd->first);
-	    auto parent_range = t_map.equal_range(itd->second);
-	    auto itc = child_range.first;
-	    while (itc != child_range.second && this_time_out > 0) {
-		auto itp = parent_range.first;
-		while (itp != parent_range.second && this_time_out > 0) {
-		    clock_t start_time = clock();
-		    tasks[itc->second]->addInputFileWithoutDependencies(itj->second->getFileByID(itp->second + "_output"));
-		    itj->second->addControlDependency(tasks[itp->second], tasks[itc->second]);
-	    	    this_time_out -= (double) (clock() - start_time)/CLOCKS_PER_SEC;
-		    itp++;
-		}
-		itc++;
-	    }
-	    itd++;
-	}
-	if (this_time_out <= 0 ) {
-	    std::cerr << "Time out! Skipped." << std::endl;
-	    num_skipped++;
-	    continue;
-	}
-
-	/* Add an input file to each root task */
-	auto entry_tasks = itj->second->getEntryTaskMap();
-	for (auto ite = entry_tasks.begin(); ite != entry_tasks.end(); ++ite) {
-	    wrench::WorkflowFile* input_file = nullptr;
-	    std::string file_name = ite->first + "_input";
-	    try {
-		input_file = itj->second->getFileByID(file_name);
-		std::cerr << "Got duplicate file!" << std::endl;
-	    } catch (const std::invalid_argument &ia) {
-		input_file = itj->second->addFile(file_name, itj->second->generateFileSize(ite->second->getFlops()));
-		ite->second->addInputFile(input_file);
-	    }
-	}
-
-	/* Create JSON structure*/
-	nlohmann::json j;
-	j["name"] = itj->first;
-	j["description"] = "This job contains " + std::to_string(itj->second->getNumberOfTasks()) + " tasks.";
-	time (&rawtime);
-	timeinfo = localtime (&rawtime);
-	char buffer [80];
-	strftime(buffer, 80, "%FT%T%z", timeinfo);
-	j["createdAt"] = buffer;
-	j["schemaVersion"] = "1.0";
-	j["author"] = {{"name", "Yuyang Wang"}, {"email", "wyy@ece.ucsb.edu"}, {"institution", "University of California, Santa Barbara"}, {"country", "US"}};
-	j["wms"] = {{"name", "none"}, {"url", "none"}, {"version", "none"}};
-
-	nlohmann::json j_workflow = nlohmann::json::object();
-	j_workflow["makespan"] = -1;
-	j_workflow["executedAt"] = itj->second->getSubmittedTime();
-	nlohmann::json j_machines = nlohmann::json::array();
-	for (int idx_machine = 0; idx_machine < num_machine; idx_machine++) {
-	    nlohmann::json j_machine = nlohmann::json::object();
-	    j_machine["nodeName"] = "none";
-	    j_machine["system"] = "linux";
-	    j_machine["architecture"] = "x86_64";
-	    j_machine["release"] = "none";
-	    j_machine["memory"] = 100;
-	    j_machine["cpu"] = {{"count", 96}, {"vendor", "none"}, {"speed", 2000}};
-	    j_machines.insert(j_machines.end(), j_machine);
-	}
-	j_workflow["machines"] = j_machines;
-
-	nlohmann::json j_jobs = nlohmann::json::array();
-	for (auto itt = tasks.begin(); itt != tasks.end(); ++itt) {
-	    nlohmann::json j_job = nlohmann::json::object();
-	    j_job["name"] = itt->first;
-	    j_job["type"] = "compute";
-	    j_job["arguments"] = nlohmann::json::array({"none"});
-	    j_job["runtime"] = itt->second->getFlops();
-	    j_job["cores"] = 1;
-	    j_job["avgCPU"] = itt->second->getAverageCPU();
-	    j_job["memory"] = itt->second->getMemoryRequirement()*100;
-	    j_job["energy"] = -1;
-	    j_job["avgPower"] = -1;
-	    j_job["priority"] = 0;
-	    j_job["machine"] = "-1";
-	    
-	    nlohmann::json j_parents = nlohmann::json::array();
-	    auto parents = itt->second->getParents();
-	    for (auto p : parents) {
-		j_parents.insert(j_parents.end(), p->getID());
-	    }
-	    j_job["parents"] = j_parents;
-
-	    nlohmann::json j_files = nlohmann::json::array();
-	    auto input_files = itt->second->getInputFiles();
-	    double bytes_read = 0;
-	    for (auto f: input_files) {
-		j_files.insert(j_files.end(), nlohmann::json::object(
-			{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "input"}}));
-		bytes_read += f->getSize();
-	    }
-	    auto output_files = itt->second->getOutputFiles();
-	    double bytes_written = 0;
-	    for (auto f: output_files) {
-		j_files.insert(j_files.end(), nlohmann::json::object(
-			{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "output"}}));
-		bytes_written += f->getSize();
-	    }
-	    j_job["files"] = j_files;
-	    j_job["bytesRead"] = bytes_read;
-	    j_job["bytesWritten"] = bytes_written;
-
-	    j_jobs.insert(j_jobs.end(), j_job);
-	}
-	j_workflow["jobs"] = j_jobs;
-
-	j["workflow"] = j_workflow;
-
-	/* Write a JSON file for each workflow*/
-	std::ofstream file;
-	file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	try {
-	    file.open("workflows/" + std::to_string(num_machine) + "_machines/"
-	    	                  + itj->first + ".json");
-	    file << j.dump(4);
-	    file.close();
-	} catch (const std::ofstream::failure &e) {
-	    throw std::invalid_argument("Cannot open file for output!");
-	}
+	int is_dumped = dumpJob(itj->second, output_path, time_out);
+        if (not is_dumped) { num_skipped++; }
     }
 
     std::cerr << "Skipped " << std::to_string(num_skipped) << "/" << std::to_string(jobs.size()) << " = " << std::to_string((double) num_skipped/jobs.size()*100) << "% jobs." << std::endl;

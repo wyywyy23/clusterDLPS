@@ -11,6 +11,7 @@
 batsim-example/**/workflows/
 batsim-example/**/workloads/
 clusterDLPS-production/**/spar_sampled/workflows/
+clusterDLPS-production/**/spar_sampled/workflows_with_bogus_file_size/
 clusterDLPS-production/**/spar_sampled/trace/
 clusterDLPS-production/**/original/trace/
 clusterDLPS-production/**/original/output/

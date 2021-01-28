@@ -5,8 +5,8 @@ rng default;
 hour = 0;
 n = 8;
 
-lb = [-250, -2500];
-ub = [ 250,  2500];
+lb = [-500, 0];
+ub = [ 500, 2000];
 intCol = [1, 2];
 
 % options = optimoptions('ga', 'PopulationSize', 10,...
