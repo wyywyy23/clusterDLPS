@@ -5,7 +5,7 @@ function rmse = data_size_optimization_func(x, hour, n)
 param = [x.param_1, x.param_2] * 1000000;
 rmse = 0;
 
-while hour < 8
+while hour < 1
     
     command = ['./wyy_simulator platforms/cluster_4096_machines_FAT_TREE.xml ',...
         '../instance_trace_to_workflows/original/output/swf/container_trace.swf ',...

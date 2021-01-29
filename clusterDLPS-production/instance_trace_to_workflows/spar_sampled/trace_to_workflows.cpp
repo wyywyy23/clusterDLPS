@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    std::string output_path = "workflows_with_bogus_file_size/" + std::to_string(num_machine) + "_machines/";
+    std::string output_path = "workflows_more_dags/" + std::to_string(num_machine) + "_machines/";
 
     time_t rawtime;
     struct tm* timeinfo;

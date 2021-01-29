@@ -3,10 +3,10 @@ addpath(genpath('analyses/matlab/'));
 rng default;
 
 hour = 0;
-n = 8;
+n = 4;
 
-lb = [-500, 0];
-ub = [ 500, 2000];
+lb = [-250, 0];
+ub = [ 250, 2000];
 intCol = [1, 2];
 
 % options = optimoptions('ga', 'PopulationSize', 10,...
@@ -25,4 +25,4 @@ results = bayesopt(fun, [param_1, param_2], 'IsObjectiveDeterministic', true,...
                                             'MaxObjectiveEvaluations', 100,...
                                             'MaxTime', 3600 * 8,...
                                             'AcquisitionFunctionName', 'expected-improvement-plus',...
-                                            'ExplorationRatio', 1);
+                                            'ExplorationRatio', 50);

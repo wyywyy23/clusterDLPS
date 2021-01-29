@@ -6,7 +6,7 @@ actual_end_timestamps = data{9};
 expected_start_timestamps = data{12};
 expected_end_timestamps = data{13};
 
-x = 0:max(actual_start_timestamps) + 100;
+x = 0:max(max(actual_end_timestamps), max(expected_end_timestamps)) + 100;
 % x = 0:4000;
 ast = zeros(size(x));
 est = zeros(size(x));
@@ -31,7 +31,7 @@ hold on;
 % plot(x, est, 'c-');
 plot(x, aet, 'r-');
 plot(x, eet, 'b-');
-xlim([0 4000])
+% xlim([0 4000])
 
 end
 
