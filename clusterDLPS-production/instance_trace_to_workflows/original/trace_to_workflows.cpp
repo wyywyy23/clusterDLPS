@@ -76,7 +76,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 	}
     }
 
-    /* Update file size according to tast execution time */
+    /* Update file size according to task execution time */
     auto all_files = job->getFiles();
     for (auto file : all_files ) {
 	auto child_tasks = file->getInputOf();

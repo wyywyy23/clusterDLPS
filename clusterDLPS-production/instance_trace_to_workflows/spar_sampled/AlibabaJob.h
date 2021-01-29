@@ -11,7 +11,6 @@ class AlibabaJob : public wrench::Workflow {
                 return this->task_instances; }
 	void addControlDependency(wrench::WorkflowTask* src, wrench::WorkflowTask* dest, bool redundant_dependencies = false);
         void printPairs(); // only for debugging
-	std::vector<std::string> splitTaskNames(std::string task_name, std::string delimiter);
 	double generateFileSize(double exe_time);
 
     private:
