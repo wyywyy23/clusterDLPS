@@ -163,7 +163,7 @@ namespace wrench {
 
       WRENCH_DEBUG("wyyWMS Daemon started on host %s terminating", S4U_Simulation::getHostName().c_str());
 
-      for (auto t : temp_workflow->getTasks()) {
+      for (auto &t : this->getWorkflow()->getTasks()) {
 	WRENCH_INFO("%s,%s,%s,%ld,%ld,%f,%f,%f,%f,%f,%f,%f,%f\n",
 		this->getWorkflow()->getName().c_str(),
 		t->getID().c_str(),
@@ -179,9 +179,14 @@ namespace wrench {
 		t->getStaticStartTime(),
 		t->getStaticEndTime()
 	);
-	temp_workflow->removeTask(t);
+	this->getWorkflow()->removeTask(t);
+//	t->deleteTask();
       }
-      delete temp_workflow;
+      for (auto &f : this->getWorkflow()->getFiles()) {
+	this->getWorkflow()->removeFile(f);
+//	f->deleteFile();
+      }
+      this->getWorkflow()->deleteWorkflow();
       this->job_manager.reset();
 
       return 0;
