@@ -179,7 +179,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 
 int main(int argc, char **argv) {
 
-    if (argc != 3) {
+    if (argc != 4) {
 	std::cerr << "Usage: " << argv[0] << "<number of machines> <time out in seconds>" << std::endl;
 	exit(1);
     }
@@ -198,7 +198,9 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    std::string output_path = "workflows_more_dags/" + std::to_string(num_machine) + "_machines/";
+    std::string partial_path = argv[3];
+
+    std::string output_path = partial_path + std::to_string(num_machine) + "_machines/";
 
     time_t rawtime;
     struct tm* timeinfo;

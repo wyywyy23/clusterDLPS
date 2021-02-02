@@ -34,7 +34,7 @@ namespace wrench {
                          const std::string &hostname,
 			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
 			 const std::string &workflow_file,
-			 long param_a, long param_b) : WMS(
+			 long mean, long std) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -44,8 +44,8 @@ namespace wrench {
             "wyy") {
 	this->hostname_to_storage_service = hostname_to_storage_service;
 	this->workflow_file = workflow_file;
-	this->param_a = param_a;
-	this->param_b = param_b;
+	this->mean = mean;
+	this->std = std;
 	}
 
     /**
@@ -164,7 +164,11 @@ namespace wrench {
       WRENCH_DEBUG("wyyWMS Daemon started on host %s terminating", S4U_Simulation::getHostName().c_str());
 
       for (auto &t : this->getWorkflow()->getTasks()) {
-	WRENCH_INFO("%s,%s,%s,%ld,%ld,%f,%f,%f,%f,%f,%f,%f,%f\n",
+	unsigned long num_of_parents_of_all_children = 0;
+	for (auto &c : t->getChildren()) {
+	    num_of_parents_of_all_children += c->getNumberOfParents();
+	}
+	WRENCH_INFO("%s,%s,%s,%ld,%ld,%f,%f,%f,%f,%f,%f,%f,%f,%ld\n",
 		this->getWorkflow()->getName().c_str(),
 		t->getID().c_str(),
 		t->getExecutionHost().c_str(),
@@ -177,7 +181,8 @@ namespace wrench {
 		t->getWriteOutputStartDate(),
 		t->getWriteOutputEndDate(),
 		t->getStaticStartTime(),
-		t->getStaticEndTime()
+		t->getStaticEndTime(),
+		num_of_parents_of_all_children
 	);
 	this->getWorkflow()->removeTask(t);
 //	t->deleteTask();
@@ -187,7 +192,9 @@ namespace wrench {
 //	f->deleteFile();
       }
       this->getWorkflow()->deleteWorkflow();
+//      this->job_manager->destroy();
       this->job_manager.reset();
+//      data_movement_manager->destroy();
 
       return 0;
     }
@@ -211,7 +218,7 @@ namespace wrench {
 
       if (endWith(workflow_file, "json")) {
 	try {
-	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, param_a, param_b);
+	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, mean, std);
 	} catch (std::invalid_argument &e) {
 	  std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
 	}

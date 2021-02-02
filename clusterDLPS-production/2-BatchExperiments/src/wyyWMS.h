@@ -30,7 +30,7 @@ namespace wrench {
                   const std::string &hostname,
 		  const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
 		  const std::string &workflow_file,
-		  long param_a = 1, long param_b = 0);
+		  long mean = 0, long std = 0);
 
 	Workflow* createWorkflowFromFile(std::string&);
 
@@ -48,8 +48,8 @@ namespace wrench {
 
 	std::string workflow_file;
 
-	long param_a;
-	long param_b;
+	long mean;
+	long std;
 
         /** @brief Whether the workflow execution should be aborted */
         bool abort = false;

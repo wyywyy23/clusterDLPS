@@ -12,3 +12,8 @@ f1 = figure;
 
 % f2 = figure;
 % plotTaskExecutionGantt(task_execution_data, f2, []);
+
+% f3 = figure;
+% plotStartTimeDifference(task_execution_data, f3);
+
+% p = p * 100000000000 / 8000 / 1000000;

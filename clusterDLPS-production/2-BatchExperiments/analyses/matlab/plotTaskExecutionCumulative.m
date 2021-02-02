@@ -6,7 +6,7 @@ actual_end_timestamps = data{9};
 expected_start_timestamps = data{12};
 expected_end_timestamps = data{13};
 
-x = 0:max(max(actual_end_timestamps), max(expected_end_timestamps)) + 100;
+x = 0:max(max(actual_end_timestamps), max(expected_end_timestamps));
 % x = 0:4000;
 ast = zeros(size(x));
 est = zeros(size(x));
@@ -24,6 +24,7 @@ rmse_start = sqrt(mean((ast-est).^2));
 diff_start = mean(ast-est);
 rmse_end = sqrt(mean((aet-eet).^2));
 diff_end = mean(aet-eet);
+% diff_end = sum(aet > eet) + max(actual_end_timestamps) - max(expected_end_timestamps);
 
 figure(fig);
 hold on;

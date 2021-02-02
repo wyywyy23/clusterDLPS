@@ -185,7 +185,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 
 int main(int argc, char **argv) {
 
-    if (argc != 5) {
+    if (argc != 6) {
 	std::cerr << "Usage: " << argv[0] << "<start time offset (hrs)> <duration (hrs)> <time out (s)> <dump interval>" << std::endl;
 	exit(1);
     }
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     int dump_interval = std::atoi(argv[4]);
 
     std::string trace_file_path = "trace/batch_instance.csv";
-    std::string output_path = "output/workflows_more_dags/";
+    std::string output_path = argv[5];
 
     std::cerr << "Trace file:\t" << trace_file_path << std::endl;
     std::cerr << "Output Path:\t" << output_path << std::endl;
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 		  << "# of queued jobs: " << std::setw(6) << jobs.size() << "\t"
 		  << "# of dumped jobs: " << std::setw(8) << num_dumped_jobs <<"\r";
 	}
-	// end_time = max(end_time, start_time + 1);
+	end_time = max(end_time, start_time + 1);
 
 	/* Fix identical instance id by sequence number */
 	instance_name = instance_name + "_" + std::to_string(sequence_number);

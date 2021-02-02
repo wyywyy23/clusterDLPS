@@ -28,14 +28,14 @@ int Simulator::run(int argc, char** argv) {
 
     if (argc != 8 and argc != 9) {
 	std::cerr << argc << std::endl;
-        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines> <param_a> <param_b> <scheduling algorithm> [host selection algorithm]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines> <mean> <std> <scheduling algorithm> [host selection algorithm]" << std::endl;
         exit(1);
     }
 
     char* platform_file = argv[1];
     double load_factor = std::atof(argv[4]) / 4096.0;
-    long param_a = std::atol(argv[5]);
-    long param_b = std::atol(argv[6]);
+    long mean = std::atol(argv[5]);
+    long std = std::atol(argv[6]);
 
     try {
 	simulation->instantiatePlatform(platform_file);
@@ -190,7 +190,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, param_a, param_b
+		    nullptr, compute_services, storage_services, file_registry_service, compute_nodes.front(), hostname_to_storage_service, workflow_file, mean, std
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
