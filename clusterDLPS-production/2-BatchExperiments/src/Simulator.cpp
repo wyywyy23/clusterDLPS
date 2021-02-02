@@ -83,14 +83,10 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
 		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
 		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 6 ? "FIRSTFIT" : std::string(argv[6])},
-		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
-		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, std::string(argv[2])},
-		{wrench::BatchComputeServiceProperty::SUBMIT_TIME_OF_FIRST_JOB_IN_WORKLOAD_TRACE_FILE, "-1"},
 		{wrench::BatchComputeServiceProperty::TASK_SELECTION_ALGORITHM, "maximum_flops"},
 		{wrench::BatchComputeServiceProperty::TASK_STARTUP_OVERHEAD, "0"},
-		{wrench::BatchComputeServiceProperty::USE_REAL_RUNTIMES_AS_REQUESTED_RUNTIMES_IN_WORKLOAD_TRACE_FILE, "true"}
 		}, {
 
 		}
@@ -107,6 +103,34 @@ int Simulator::run(int argc, char** argv) {
     for (auto com_serv : compute_services) {
 	WRENCH_DEBUG("On node: %s\tIs up: %s", com_serv->getHostname().c_str(), com_serv->isUp() ? "true" : "false");
     }
+
+    std::shared_ptr<wrench::ComputeService> trace_replay_service;
+    wrench::BatchComputeService* temp_replay_service = nullptr;
+    try {
+	temp_replay_service = new wrench::BatchComputeService(
+		master_node, compute_nodes, "", {
+		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "static"},
+		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
+		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
+		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 6 ? "FIRSTFIT" : std::string(argv[6])},
+		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
+		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/replay_log.csv"},
+		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
+		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, std::string(argv[2])},
+		{wrench::BatchComputeServiceProperty::SUBMIT_TIME_OF_FIRST_JOB_IN_WORKLOAD_TRACE_FILE, "-1"},
+		{wrench::BatchComputeServiceProperty::TASK_SELECTION_ALGORITHM, "maximum_flops"},
+		{wrench::BatchComputeServiceProperty::TASK_STARTUP_OVERHEAD, "0"},
+		{wrench::BatchComputeServiceProperty::USE_REAL_RUNTIMES_AS_REQUESTED_RUNTIMES_IN_WORKLOAD_TRACE_FILE, "true"}
+		}, {
+
+		}
+	);
+    } catch (std::invalid_argument &e) {
+	std::cerr << "Cannot instantiate a replay service: " << e.what() << std::endl;
+	exit(1);
+    }
+    trace_replay_service = simulation->add(temp_replay_service);
+    std::cerr << "Instantiated a trace replay service on " << temp_replay_service->getHostname() <<" with scheduling algorithm: " << temp_replay_service->getPropertyValueAsString(wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM) << "." << std::endl;
 
     /* Instantiate one file registry service on the WMS host */
     std::shared_ptr<wrench::FileRegistryService> file_registry_service;
