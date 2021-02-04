@@ -4,9 +4,22 @@
 #include <fstream>
 #include <math.h>
 #include <set>
+#include <algorithm>
+#include <tuple>
+#include <vector>
 
 #include "fast-cpp-csv-parser/csv.h"
 #include "helper/helper.h"
+
+bool myCompare(const std::tuple<long, long, long, long, long, long>& a,
+	       const std::tuple<long, long, long, long, long, long>& b) {
+    return (
+	(std::get<0>(a) < std::get<0>(b)) ||
+	(std::get<0>(a) == std::get<0>(b) && std::get<5>(a) < std::get<5>(b)) ||
+	(std::get<0>(a) == std::get<0>(b) && std::get<5>(a) == std::get<5>(b) && std::get<4>(a) < std::get<4>(b)) ||
+	(std::get<0>(a) == std::get<0>(b) && std::get<5>(a) == std::get<5>(b) && std::get<4>(a) == std::get<4>(b) && std::get<3>(a) < std::get<3>(b))
+    );
+}
 
 int main(int argc, char **argv) {
 
@@ -48,6 +61,7 @@ int main(int argc, char **argv) {
     long wait_time = 0;
     long run_time = 864000;
     std::set<std::string> containers;
+    std::vector<std::tuple<long, long, long, long, long, long>> trace;
 
     while (container_trace.read_row(container_id, machine_id, start_time, app_du, status, avg_cpu, max_cpu, avg_mem)) {
 
@@ -55,7 +69,7 @@ int main(int argc, char **argv) {
 	bool verbose = lines_read % 100 == 0 ? true : false;
 	if (verbose) {
 	    std::cerr << "Read " << std::setw(10) << (double) lines_read / 370540 * 100 << "\% of file...\t"
-		  << "# of containers: " << std::setw(8) << valid_containers <<"\r";
+		  << "# of containers: " << std::setw(8) << containers.size() <<"\r";
 	}
 
 	if (containers.find(container_id) != containers.end()) continue;
@@ -70,28 +84,34 @@ int main(int argc, char **argv) {
 	/* Skip failed task */
 	if (status != "started") continue;
 
-	file << valid_containers++ << " "
-             << start_time << " "
-             << wait_time << " "
-             << run_time << " "
-             << avg_cpu/100 << " "
-             << "-1 "
-             << "-1 "
-             << max_cpu/100 << " "
-             << "-1 "
-             << "-1 "
-             << "-1 "
-             << "1 "
-             << "1 "
-             << "1 "
-             << "1 "
-             << "-1 "
-             << "-1 "
-             << "-1 "
-             << host_id << std::endl;
-             
+        trace.push_back(std::make_tuple(start_time, wait_time, run_time, avg_cpu/100, max_cpu/100, host_id));     
 	containers.insert(container_id);
     }
+
+    std::sort(trace.begin(), trace.end(), myCompare);
+
+    for (auto t : trace) {
+	file << valid_containers++ << " "
+	     << std::get<0>(t) << " "
+             << std::get<1>(t) << " "
+             << std::get<2>(t) << " "
+             << std::get<3>(t) << " "
+             << "-1 "
+             << "-1 "
+             << std::get<4>(t) << " "
+             << "-1 "
+             << "-1 "
+             << "-1 "
+             << "1 "
+             << "1 "
+             << "1 "
+             << "1 "
+             << "-1 "
+             << "-1 "
+             << "-1 "
+             << std::get<5>(t) << std::endl;
+    }
+
     file.close();
     std::cerr << std::endl;
 
