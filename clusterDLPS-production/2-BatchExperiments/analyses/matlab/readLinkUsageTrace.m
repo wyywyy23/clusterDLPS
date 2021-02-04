@@ -5,7 +5,7 @@ function [data] = readLinkUsageTrace(trace_file)
 rid = fopen(trace_file, 'r');
 if rid ~= -1
     
-    data = textscan(rid, 'link_from_%f_%f_%f,status,%f,%f');
+    data = textscan(rid, 'link_from_%f_%f_%f %q %f %f', 'Delimiter', ',');
     
     fclose(rid);
 end

@@ -16,9 +16,9 @@ plotTaskExecutionGantt(task_execution_data, f2, []);
 
 clear task_execution_data;
 
-% link_usage_data = readLinkUsageTrace(link_usage_trace_file);
+link_usage_data = readLinkUsageTrace(link_usage_trace_file);
 
-% f3 = figure;
-% plotLinkUsage(link_usage_data, f3, 64);
+f3 = figure;
+plotLinkUsage(link_usage_data, f3, 64);
 
-% clear link_usage_data;
+clear link_usage_data;
