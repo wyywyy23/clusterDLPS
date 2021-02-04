@@ -1,6 +1,9 @@
 # MacOS
 **/.DS_Store
 
+# Matlab
+**/*.m~
+
 # CMake and Makefiles
 **/CMakeFiles
 **/CMakeCache.txt
