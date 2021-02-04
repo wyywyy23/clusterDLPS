@@ -2,16 +2,22 @@ function [fig] = plotLinkUsage(data, fig, max_plots)
 %PLOTLINKUSAGE Summary of this function goes here
 %   Detailed explanation goes here
 
-data{3} = data{3}(1:numel(data{6}));
-data{4} = data{4}(1:numel(data{6}));
-data{5} = data{5}(1:numel(data{6}));
+data{3} = data{3}(1:numel(data{7}));
+data{4} = data{4}(1:numel(data{7}));
+data{5} = data{5}(1:numel(data{7}));
+data{6} = data{6}(1:numel(data{7}));
 
-status = zeros(size(data{4}));
-for i = 1:numel(data{4})
-    status(i) = strcmp(data{4}{i}, 'finished');
+link_id = zeros(size(data{3}));
+for i = 1:numel(data{3})
+   link_id(i) =  data{3}(i) + strcmp(data{4}{i}, 'DOWN')/10;
 end
 
-data = [data{3}, data{5}, data{6}, status];
+status = zeros(size(data{5}));
+for i = 1:numel(data{5})
+    status(i) = strcmp(data{5}{i}, 'finished');
+end
+
+data = [link_id, data{6}, data{7}, status];
 data = unique(data, 'rows', 'stable');
 
 unique_links = unique(data(:, 1));

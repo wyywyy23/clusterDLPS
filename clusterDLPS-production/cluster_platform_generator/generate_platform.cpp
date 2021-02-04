@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     cluster_zone.append_attribute("loopback_bw")     = "1000EBps";
     cluster_zone.append_attribute("loopback_lat")    = "0";
     cluster_zone.append_attribute("router_id")       = "cluster_router";
-    cluster_zone.append_attribute("sharing_policy")  = "SHARED";
+    cluster_zone.append_attribute("sharing_policy")  = "SPLITDUPLEX";
 
     // auto host = cluster.append_child("host");
 
