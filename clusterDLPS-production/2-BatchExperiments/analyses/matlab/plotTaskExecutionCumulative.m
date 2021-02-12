@@ -29,8 +29,8 @@ figure(fig);
 hold on;
 % plot(x, ast, 'm-');
 % plot(x, est, 'c-');
-plot(x, aet, 'r-');
-plot(x, eet, 'b-');
+plot(x, aet, 'b-');
+%plot(x, eet, 'b-');
 xlim([0 4000])
 
 end

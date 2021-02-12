@@ -16,9 +16,12 @@ f1 = figure;
 
 clear task_execution_data;
 
-link_usage_data = readLinkUsageTrace(link_usage_trace_file);
+% link_usage_data = readLinkUsageTrace(link_usage_trace_file);
 
-f3 = figure;
-plotLinkUsage(link_usage_data, f3, 64);
+% f3 = figure;
+% plotLinkUsage(link_usage_data, f3, 64);
 
-clear link_usage_data;
+% f4 = figure;
+% plotLinkStates(link_usage_data, f4, 64);
+
+% clear link_usage_data;
