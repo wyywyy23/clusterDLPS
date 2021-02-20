@@ -293,6 +293,11 @@ int Simulator::run(int argc, char** argv) {
 
     std::cerr << "Simulation done!" << std::endl;
 
+    /* Link load and energy info */
+    if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
+	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
+	WRENCH_INFO("Total load for link_from_0_-1_0_UP: %f bytes", sg_dlps_get_cum_load(e->link_by_name("link_from_0_-1_0_UP")));
+    }
     /* Workflow completion info */ 
 
     /* std::ofstream file;
