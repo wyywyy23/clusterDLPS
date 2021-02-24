@@ -82,11 +82,11 @@ int main(int argc, char **argv) {
     cluster_zone.append_attribute("speed")           = "1f";
     cluster_zone.append_attribute("core")            = "96";
     cluster_zone.append_attribute("bw")              = "100Gbps";
-    cluster_zone.append_attribute("lat")             = "20us";
+    cluster_zone.append_attribute("lat")             = "0us"; //"20us";
     cluster_zone.append_attribute("topology")        = topo_name.c_str();
     cluster_zone.append_attribute("topo_parameters") = topo_parameter.c_str();
     cluster_zone.append_attribute("loopback_bw")     = "1000EBps";
-    cluster_zone.append_attribute("loopback_lat")    = "0";
+    cluster_zone.append_attribute("loopback_lat")    = "0us";
     cluster_zone.append_attribute("router_id")       = "cluster_router";
     cluster_zone.append_attribute("sharing_policy")  = "SPLITDUPLEX";
 
