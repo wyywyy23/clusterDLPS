@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     cluster_zone.append_attribute("suffix")          = "";
     cluster_zone.append_attribute("speed")           = "1f";
     cluster_zone.append_attribute("core")            = "96";
-    cluster_zone.append_attribute("bw")              = "100Gbps";
+    cluster_zone.append_attribute("bw")              = "300Gbps";
     cluster_zone.append_attribute("lat")             = "0us"; //"20us";
     cluster_zone.append_attribute("topology")        = topo_name.c_str();
     cluster_zone.append_attribute("topo_parameters") = topo_parameter.c_str();

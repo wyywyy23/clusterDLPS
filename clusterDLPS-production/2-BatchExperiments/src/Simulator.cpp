@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include <simgrid/plugins/dlps.h>
+#include "simgrid/plugins/dlps.hpp"
 #include <simgrid/s4u.hpp>
 #include <nlohmann/json.hpp>
 #include "Simulator.h"
@@ -296,7 +297,14 @@ int Simulator::run(int argc, char** argv) {
     /* Link load and energy info */
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
-	WRENCH_INFO("Total load for link_from_0_-1_0_UP: %f bytes", sg_dlps_get_cum_load(e->link_by_name("link_from_0_-1_0_UP")));
+	// WRENCH_INFO("Total load for link_from_0_-1_0_UP: %f bytes", sg_dlps_get_cum_load(e->link_by_name("link_from_0_-1_0_UP")));
+	double total_energy = 0.0;
+        for (auto link : e->get_all_links()) {
+	    if (link->extension<simgrid::plugin::DLPS>()->is_enabled()) {
+		total_energy += sg_dlps_get_cum_energy(link);
+	    }
+        }
+	WRENCH_INFO("Total energy: %f J", total_energy);
     }
     /* Workflow completion info */ 
 
