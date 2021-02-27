@@ -44,6 +44,21 @@ int Simulator::run(int argc, char** argv) {
     }
     std::cerr << "Instantiated a platform." << std::endl;
 
+    /* Add a disk to each host */
+    if (simgrid::s4u::Engine::is_initialized()) {
+	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
+	for (auto host : e->get_all_hosts()) {
+	    host->create_disk()
+		->set_name("local_disk")
+		->set_read_bandwidth(1.0e18)
+		->set_write_bandwidth(1.0e18)
+		->set_property("size", "1000EB")
+		->set_property("mount", "/")
+		->seal();
+	}
+    }
+
+
     /* Select links for load tracking */
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
