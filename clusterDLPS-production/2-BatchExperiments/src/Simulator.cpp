@@ -48,10 +48,7 @@ int Simulator::run(int argc, char** argv) {
     if (simgrid::s4u::Engine::is_initialized()) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
 	for (auto host : e->get_all_hosts()) {
-	    host->create_disk()
-		->set_name("local_disk")
-		->set_read_bandwidth(1.0e18)
-		->set_write_bandwidth(1.0e18)
+	    host->create_disk("local_disk", 1.0e18, 1.0e18)
 		->set_property("size", "1000EB")
 		->set_property("mount", "/")
 		->seal();
