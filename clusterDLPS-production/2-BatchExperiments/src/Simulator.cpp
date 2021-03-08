@@ -107,7 +107,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceProperty::TASK_STARTUP_OVERHEAD, "0"},
 		{wrench::BatchComputeServiceProperty::USE_REAL_RUNTIMES_AS_REQUESTED_RUNTIMES_IN_WORKLOAD_TRACE_FILE, "true"}
 		}, {
-		{wrench::BatchComputeServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+/*		{wrench::BatchComputeServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::RESOURCE_DESCRIPTION_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::RESOURCE_DESCRIPTION_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
@@ -122,7 +122,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceMessagePayload::PILOT_JOB_STARTED_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::PILOT_JOB_EXPIRED_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_ANSWER_MESSAGE_PAYLOAD, 0},
-		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_REQUEST_MESSAGE_PAYLOAD, 0}
+		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_REQUEST_MESSAGE_PAYLOAD, 0} */
 		}
 	);
     } catch (std::invalid_argument &e) {
@@ -148,14 +148,14 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::FileRegistryServiceProperty::ADD_ENTRY_COMPUTE_COST, "1000000000.0"},
 		{wrench::FileRegistryServiceProperty::REMOVE_ENTRY_COMPUTE_COST, "1000000000.0"}i */
 		}, {
-		{wrench::FileRegistryServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+/*		{wrench::FileRegistryServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::FILE_LOOKUP_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::FILE_LOOKUP_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::REMOVE_ENTRY_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::REMOVE_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_REQUEST_MESSAGE_PAYLOAD, 0},
-		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0}
+		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0}*/
 		}
 
 	);
@@ -178,7 +178,7 @@ int Simulator::run(int argc, char** argv) {
 	temp_storage_service = new wrench::SimpleStorageService(master_node, {"/"}, {
 		{wrench::SimpleStorageServiceProperty::BUFFER_SIZE, "infinity"}
 		}, {
-		{wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+/*		{wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_ANSWER_MESSAGE_PAYLOAD, 0},
@@ -191,7 +191,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_REQUEST_MESSAGE_PAYLOAD, 0},
-		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}
+		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}*/
 		}
 	);
     } catch (std::invalid_argument &e) {
@@ -204,7 +204,7 @@ int Simulator::run(int argc, char** argv) {
 	    temp_storage_service = new wrench::SimpleStorageService(comp_node, {"/"}, {
             	    {wrench::SimpleStorageServiceProperty::BUFFER_SIZE, "infinity"}
                     }, {
-		    {wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+/*		    {wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_REQUEST_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_ANSWER_MESSAGE_PAYLOAD, 0},
@@ -217,7 +217,7 @@ int Simulator::run(int argc, char** argv) {
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_REQUEST_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_ANSWER_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_REQUEST_MESSAGE_PAYLOAD, 0},
-		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}
+		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}*/
                     }
 	    );
 	} catch (std::invalid_argument &e) {
