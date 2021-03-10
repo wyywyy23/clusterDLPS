@@ -53,7 +53,7 @@ figure(fig);
 for i = 1:numel(toPlot)
     subplot(ceil(sqrt(num_links)), ceil(sqrt(num_links)), i);
     plot(toPlot{i}(:, 1), toPlot{i}(:,2));
-    xlim([0 4000]); ylim([0 15e9]);
+    xlim([0 4000]); ylim([0 40e9]);
     drawnow;
 end
 

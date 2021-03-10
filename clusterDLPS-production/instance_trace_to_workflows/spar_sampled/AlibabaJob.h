@@ -4,7 +4,7 @@
 class AlibabaJob : public wrench::Workflow {
 
     public:
-        AlibabaJob* updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem);
+        AlibabaJob* updateJob(std::string task_name, std::string instance_name, double start_time, double duration, double avg_cpu, double avg_mem);
         std::set<std::pair<std::string, std::string>> getDependencyMap() {
                 return this->dependencies; }
         std::multimap<std::string, std::string> getTaskInstanceMap() {

@@ -216,8 +216,8 @@ int main(int argc, char **argv) {
     std::string job_name;
     std::string task_type;
     std::string status;
-    long start_time;
-    long end_time;
+    double start_time;
+    double end_time;
     std::string machine_id;
     long sequence_number;
     long total_sequence_number;
@@ -295,6 +295,15 @@ int main(int argc, char **argv) {
 
 	start_time = start_time - start_time_offset * 3600;
 	end_time = end_time - start_time_offset * 3600;
+	
+	std::mt19937 rng;
+    	std::seed_seq seed (instance_name.begin(), instance_name.end());
+    	rng.seed(seed);
+   	std::uniform_real_distribution<double> dist1(end_time, end_time + 1);
+        end_time = max(dist1(rng), 0.0);
+   	std::uniform_real_distribution<double> dist2(start_time, min(start_time + 1, end_time));
+        start_time = max(dist2(rng), 0.0);
+	
 	if (jobs.empty() || jobs.find(job_name) == jobs.end()) { /* a new job */
 	    AlibabaJob* job = new AlibabaJob();
 	    job->setName(job_name);

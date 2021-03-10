@@ -6,7 +6,7 @@ double AlibabaJob::generateFileSize(double seed) { // File size in KB
     std::mt19937 rng;
     std::normal_distribution<double> dist(623000000, 105000000);
     rng.seed(seed);
-    double file_size = max(dist(rng), 0.0);
+    double file_size = max(dist(rng), 1024.0);
 
     return file_size; // Fix here with data size optimization result
 }
@@ -43,10 +43,15 @@ void AlibabaJob::printPairs() { // only for debugging
     std::cerr << std::endl;
 }
 
-AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, int duration, double avg_cpu, double avg_mem) {
+AlibabaJob* AlibabaJob::updateJob(std::string task_name, std::string instance_name, double start_time, double duration, double avg_cpu, double avg_mem) {
 
     wrench::WorkflowTask* task = this->addTask(instance_name, duration, 1, 1, avg_mem);
     task->setAverageCPU(avg_cpu);
+
+    /* Update job start time */
+    if (start_time < this->getSubmittedTime()) {
+        this->setSubmittedTime(start_time);
+    }
 
     /* Remove first letter and split into individual task IDs */
     std::vector<std::string> split_names;

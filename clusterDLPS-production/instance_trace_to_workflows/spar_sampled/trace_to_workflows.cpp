@@ -223,13 +223,24 @@ int main(int argc, char **argv) {
     std::map<std::string, AlibabaJob*> jobs;
 
     while (task_trace.read_row(start_time, job_name, task_name, instance_name, duration, avg_cpu, avg_mem)) {
+
+	/* randomize start time and duration */
+	std::mt19937 rng;
+    	std::seed_seq seed (instance_name.begin(), instance_name.end());
+    	rng.seed(seed);
+    	std::uniform_real_distribution<double> dist1(start_time + duration, start_time + duration + 1);
+        double end_time = max(dist1(rng), 0.0);
+    	std::uniform_real_distribution<double> dist2(start_time, min(start_time + 1, end_time));
+	start_time = max(dist2(rng), 0.0);
+	duration = max(end_time - start_time, 0.0);
+
 	if (jobs.empty() || jobs.find(job_name) == jobs.end()) { /* a new job */
 	    AlibabaJob* job = new AlibabaJob();
 	    job->setName(job_name);
 	    job->setSubmittedTime(start_time);
-	    jobs[job_name] = job->updateJob(task_name, instance_name, duration, avg_cpu, avg_mem);
+	    jobs[job_name] = job->updateJob(task_name, instance_name, start_time, duration, avg_cpu, avg_mem);
 	} else { /* existing job */
-	    jobs[job_name] = jobs[job_name]->updateJob(task_name, instance_name, duration, avg_cpu, avg_mem);
+	    jobs[job_name] = jobs[job_name]->updateJob(task_name, instance_name, start_time, duration, avg_cpu, avg_mem);
 	}
     }
     

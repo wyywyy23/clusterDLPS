@@ -385,9 +385,9 @@ int Simulator::run(int argc, char** argv) {
     return 0;
 }
 
-unsigned int Simulator::getSubmittedTimeFromFile(std::string& workflow_file) {
+double Simulator::getSubmittedTimeFromFile(std::string& workflow_file) {
 
-    unsigned int submitted_time = 0;
+    double submitted_time = 0.0;
     if (endWith(workflow_file, "json")) {
 	std::ifstream file;
 	nlohmann::json j;
