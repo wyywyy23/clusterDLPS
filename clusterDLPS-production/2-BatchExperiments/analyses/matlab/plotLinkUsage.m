@@ -1,4 +1,4 @@
-function [fig] = plotLinkUsage(data, fig, max_plots)
+function [fig, interval] = plotLinkUsage(data, fig, max_plots)
 %PLOTLINKUSAGE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,6 +24,7 @@ unique_links = unique(data(:, 1));
 num_links = min(numel(unique_links), max_plots);
 
 toPlot = cell(num_links, 1);
+interval = [];
 
 for i = 1:numel(toPlot)
     toPlot{i} = [0, 0, 1];
@@ -38,6 +39,9 @@ for i = 1:size(data, 1)
 %     end
     if toPlot{unique_links == data(i, 1)}(end, 1) == data(i, 2) %&& data(i, 4) == 0
        continue; 
+    end
+    if data(i, 3) == 0
+       interval = [interval, data(i, 2) - toPlot{unique_links == data(i, 1)}(end,1)];
     end
     toPlot{unique_links == data(i, 1)} = [toPlot{unique_links == data(i, 1)};...
                                                 [toPlot{unique_links == data(i, 1)}(end,1), data(i, 3), toPlot{unique_links == data(i, 1)}(end,3)]];

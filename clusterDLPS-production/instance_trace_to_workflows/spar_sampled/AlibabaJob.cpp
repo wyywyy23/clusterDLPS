@@ -2,11 +2,16 @@
 #include "AlibabaJob.h"
 #include "helper/helper.h"
 
-double AlibabaJob::generateFileSize(double seed) { // File size in KB
-    std::mt19937 rng;
-    std::normal_distribution<double> dist(623000000, 105000000);
-    rng.seed(seed);
-    double file_size = max(dist(rng), 1024.0);
+double AlibabaJob::generateFileSize(std::string job_id, std::string file_id) { // File size in KB
+    std::mt19937 rng1;
+    std::mt19937 rng2;
+    std::seed_seq seed1 (job_id.begin(), job_id.end());
+    std::seed_seq seed2 (file_id.begin(), file_id.end());
+    std::normal_distribution<double> dist1(9000000, 2110000000);
+    std::normal_distribution<double> dist2(0, 37500);
+    rng1.seed(seed1);
+    rng2.seed(seed2);
+    double file_size = max(dist1(rng1) + dist2(rng2), 0.0);
 
     return file_size; // Fix here with data size optimization result
 }

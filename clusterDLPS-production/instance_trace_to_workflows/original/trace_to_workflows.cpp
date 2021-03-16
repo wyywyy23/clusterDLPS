@@ -88,7 +88,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 //	    avg_flops = avg_flops / child_tasks.size();
 //	    file->setSize(job->generateFileSize(avg_flops));
 //	}
-	file->setSize(job->generateFileSize(job->getSubmittedTime()));
+	file->setSize(job->generateFileSize(job->getName(), file->getID()));
     }
 
 

@@ -19,7 +19,10 @@ clear task_execution_data;
 link_usage_data = readLinkUsageTrace(link_usage_trace_file);
 
 f3 = figure;
-plotLinkUsage(link_usage_data, f3, 64);
+[f3, interval] = plotLinkUsage(link_usage_data, f3, 64);
+
+figure;
+histogram(interval, [0:1:3600])
 
 % f4 = figure;
 % plotLinkStates(link_usage_data, f4, 64);

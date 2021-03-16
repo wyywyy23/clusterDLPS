@@ -48,7 +48,10 @@ int Simulator::run(int argc, char** argv) {
     if (simgrid::s4u::Engine::is_initialized()) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
 	for (auto host : e->get_all_hosts()) {
-	    host->create_disk("local_disk", 1.0e18, 1.0e18)
+	    const char* host_name = host->get_cname();
+	    host->create_disk("local_disk",
+			      host_name[0] == 'm' ? 1.0e18 : 1.0e18,
+			      host_name[0] == 'm' ? 1.0e18 : 1.0e18)
 		->set_property("size", "1000EB")
 		->set_property("mount", "/")
 		->seal();
@@ -66,7 +69,7 @@ int Simulator::run(int argc, char** argv) {
 	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
 	    sg_dlps_enable(link);
 	}
-//	sg_dlps_enable(e->link_by_name("link_from_-1_-9_64"));
+//	sg_dlps_enable(e->link_by_name("link_from_0_-1_0_UP"));
     }
 
     /* Instantiate one compute service on the WMS host for all nodes */

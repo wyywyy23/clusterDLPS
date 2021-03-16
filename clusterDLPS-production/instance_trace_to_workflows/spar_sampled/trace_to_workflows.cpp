@@ -84,7 +84,7 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 //	    avg_flops = avg_flops / child_tasks.size();
 //	    file->setSize(job->generateFileSize(avg_flops));
 //	}
-	file->setSize(job->generateFileSize(job->getSubmittedTime()));
+	file->setSize(job->generateFileSize(job->getName(), file->getID()));
     }
 
 
@@ -144,14 +144,14 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
 	double bytes_read = 0;
 	for (auto f: input_files) {
 	    j_files.insert(j_files.end(), nlohmann::json::object(
-		{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "input"}}));
+		{{"name", f->getID()}, {"size", f->getSize()}, {"link", "input"}}));
 	    bytes_read += f->getSize();
 	}
 	auto output_files = itt->second->getOutputFiles();
 	double bytes_written = 0;
 	for (auto f: output_files) {
 	    j_files.insert(j_files.end(), nlohmann::json::object(
-		{{"name", f->getID()}, {"size", (long) f->getSize()}, {"link", "output"}}));
+		{{"name", f->getID()}, {"size", f->getSize()}, {"link", "output"}}));
 	    bytes_written += f->getSize();
 	}
 	j_job["files"] = j_files;
