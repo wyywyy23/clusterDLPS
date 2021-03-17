@@ -33,7 +33,8 @@ namespace wrench {
 			 const std::shared_ptr<FileRegistryService> file_registry_service,
                          const std::string &hostname,
 			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
-			 const std::string &workflow_file) : WMS(
+			 const std::string &workflow_file,
+			 const double load_factor) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -43,6 +44,7 @@ namespace wrench {
             "wyy") {
 	this->hostname_to_storage_service = hostname_to_storage_service;
 	this->workflow_file = workflow_file;
+	this->load_factor = load_factor;
 	}
 
     /**
@@ -62,7 +64,7 @@ namespace wrench {
       if (!temp_workflow) {
 	    throw std::runtime_error("Failed to create a workflow from file.");
       }
-      WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
+      WRENCH_DEBUG("Created a workflow from %s, submit time: %f.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
 
       this->addWorkflow(temp_workflow, temp_workflow->getSubmittedTime());
 
@@ -208,7 +210,7 @@ namespace wrench {
 
       if (endWith(workflow_file, "json")) {
 	try {
-	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
+	    workflow = PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", load_factor);
 	} catch (std::invalid_argument &e) {
 	  std::cerr << "Cannot create a workflow from " << workflow_file << ": " << e.what() << std::endl;
 	}

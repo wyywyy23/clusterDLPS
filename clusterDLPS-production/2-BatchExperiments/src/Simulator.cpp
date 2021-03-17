@@ -104,7 +104,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
-		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, ""},
+		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, std::string(argv[2])},
 		{wrench::BatchComputeServiceProperty::SUBMIT_TIME_OF_FIRST_JOB_IN_WORKLOAD_TRACE_FILE, "-1"},
 		{wrench::BatchComputeServiceProperty::TASK_SELECTION_ALGORITHM, "maximum_flops"},
 		{wrench::BatchComputeServiceProperty::TASK_STARTUP_OVERHEAD, "0"},
@@ -266,7 +266,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file
+		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, load_factor
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
