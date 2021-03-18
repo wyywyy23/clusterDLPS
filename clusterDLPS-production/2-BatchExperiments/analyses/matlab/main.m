@@ -22,7 +22,7 @@ f3 = figure;
 [f3, interval] = plotLinkUsage(link_usage_data, f3, 64);
 
 figure;
-histogram(interval, [0:0.0001:0.1])
+histogram(interval, [0:0.0001:0.02])
 
 % f4 = figure;
 % plotLinkStates(link_usage_data, f4, 64);
