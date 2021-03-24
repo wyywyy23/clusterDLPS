@@ -1,10 +1,11 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <wrench-dev.h>
 #include <set>
 #include <map>
 #include <simgrid/plugins/dlps.h>
-#include "simgrid/plugins/dlps.hpp"
+#include <simgrid/plugins/dlps.hpp>
 #include <simgrid/s4u.hpp>
 #include <nlohmann/json.hpp>
 #include "Simulator.h"
@@ -246,7 +247,6 @@ int Simulator::run(int argc, char** argv) {
     std::vector<std::string> workflow_files = getAllFilesInDir(std::string(argv[3]));
 
     std::set<shared_ptr<wrench::WMS>> wms_services;
-    // std::map<std::shared_ptr<wrench::WMS>, std::shared_ptr<wrench::Workflow>> wms_workflow_map;
 
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
@@ -254,13 +254,6 @@ int Simulator::run(int argc, char** argv) {
     for (auto workflow_file: workflow_files) {
 
 	if (dist(rng) > load_factor) continue;
-
-	/* wrench::Workflow* temp_workflow = createWorkflowFromFile(workflow_file);
-	if (!temp_workflow) {
-	    std::cerr << "Workflow creation failed." << std::endl;
-	    exit(1);
-	}
-	WRENCH_DEBUG("Created a workflow from %s, submit time: %d.", workflow_file.c_str(), temp_workflow->getSubmittedTime()); */
 
 	wrench::WMS* temp_wms = nullptr;
 	try {
@@ -284,20 +277,6 @@ int Simulator::run(int argc, char** argv) {
 	WRENCH_DEBUG("On node: %s\tIs up: %s", wms_serv->getHostname().c_str(), wms_serv->isUp() ? "true" : "false");
     }
 
-    /* Stage input files for all workflows */
-    /* for (auto wms_serv : wms_services) {
-	for (auto const &f : wms_serv->getWorkflow()->getInputFiles()) {
-	    try {
-		simulation->stageFile(f, hostname_to_storage_service[master_node]);
-		WRENCH_DEBUG("Staged input file %s", f->getID().c_str());
-	    } catch (std::runtime_error &e) {
-		std::cerr << "Cannot stage input file " << f->getID() << ": " << e.what() << std::endl;
-		exit(1);
-	    }
-	}
-    }
-    std::cerr << "Staged input files to the master storage." << std::endl; */
-
     /* Launch the simulation */
     std::cerr << "Launching the simulation..." << std::endl;
     try {
@@ -312,15 +291,37 @@ int Simulator::run(int argc, char** argv) {
     /* Link load and energy info */
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
-	// WRENCH_INFO("Total load for link_from_0_-1_0_UP: %f bytes", sg_dlps_get_cum_load(e->link_by_name("link_from_0_-1_0_UP")));
 	double total_energy = 0.0;
         for (auto link : e->get_all_links()) {
 	    if (link->extension<simgrid::plugin::DLPS>()->is_enabled()) {
 		total_energy += sg_dlps_get_cum_energy(link);
+                
+                // Link comm trace dump
+                std::string dlps_mode = link->extension<simgrid::plugin::DLPS>()->get_dlps_mode();
+                auto comm_trace = link->extension<simgrid::plugin::DLPS>()->get_comm_trace();
+                std::string filename = "output/comm_trace/" + dlps_mode + "/" + link->get_name() + ".trace";
+                std::ofstream file;
+                file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+                try {
+                    file.open(filename);
+                } catch (const std::ofstream::failure &e) {
+                    std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+                    throw;
+                }
+                for (auto trace_line : comm_trace) {
+		    file << fixed << setprecision(17) 
+			 << std::get<0>(trace_line) << ","
+			 << std::get<1>(trace_line) << ","
+			 << std::get<2>(trace_line) << ","
+			 << std::get<3>(trace_line) << ","
+			 << std::get<4>(trace_line) << std::endl;
+		}
+		file.close();
 	    }
         }
 	WRENCH_INFO("Total energy: %f J", total_energy);
     }
+
     /* Workflow completion info */ 
 
     /* std::ofstream file;
