@@ -18,4 +18,4 @@ done
 
 ./trace2workflows ${START_OFFSET} ${DURATION} 1 1000
 
-./trace2swf
+# ./trace2swf

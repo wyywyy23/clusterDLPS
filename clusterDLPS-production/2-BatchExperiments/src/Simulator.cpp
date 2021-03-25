@@ -63,14 +63,14 @@ int Simulator::run(int argc, char** argv) {
     /* Select links for load tracking */
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
-	for (auto link : e->get_all_links()) {
-	    const char* link_name = link->get_cname();
-	    if (link_name[1] != 'i') continue;
-	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
-	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
-	    sg_dlps_enable(link);
-	}
-//	sg_dlps_enable(e->link_by_name("link_from_0_-1_0_UP"));
+//	for (auto link : e->get_all_links()) {
+//	    const char* link_name = link->get_cname();
+//	    if (link_name[1] != 'i') continue;
+//	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
+//	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
+//	    sg_dlps_enable(link);
+//	}
+	sg_dlps_enable(e->link_by_name("link_from_0_-1_0_UP"));
     }
 
     /* Instantiate one compute service on the WMS host for all nodes */
@@ -105,13 +105,13 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
-		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, std::string(argv[2])},
+		{wrench::BatchComputeServiceProperty::SIMULATED_WORKLOAD_TRACE_FILE, ""},
 		{wrench::BatchComputeServiceProperty::SUBMIT_TIME_OF_FIRST_JOB_IN_WORKLOAD_TRACE_FILE, "-1"},
 		{wrench::BatchComputeServiceProperty::TASK_SELECTION_ALGORITHM, "maximum_flops"},
 		{wrench::BatchComputeServiceProperty::TASK_STARTUP_OVERHEAD, "0"},
 		{wrench::BatchComputeServiceProperty::USE_REAL_RUNTIMES_AS_REQUESTED_RUNTIMES_IN_WORKLOAD_TRACE_FILE, "true"}
 		}, {
-/*		{wrench::BatchComputeServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+		{wrench::BatchComputeServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::RESOURCE_DESCRIPTION_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::RESOURCE_DESCRIPTION_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
@@ -126,7 +126,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::BatchComputeServiceMessagePayload::PILOT_JOB_STARTED_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::PILOT_JOB_EXPIRED_MESSAGE_PAYLOAD, 0},
 		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_ANSWER_MESSAGE_PAYLOAD, 0},
-		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_REQUEST_MESSAGE_PAYLOAD, 0} */
+		{wrench::BatchComputeServiceMessagePayload::TERMINATE_PILOT_JOB_REQUEST_MESSAGE_PAYLOAD, 0}
 		}
 	);
     } catch (std::invalid_argument &e) {
@@ -152,14 +152,14 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::FileRegistryServiceProperty::ADD_ENTRY_COMPUTE_COST, "1000000000.0"},
 		{wrench::FileRegistryServiceProperty::REMOVE_ENTRY_COMPUTE_COST, "1000000000.0"}i */
 		}, {
-/*		{wrench::FileRegistryServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+		{wrench::FileRegistryServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::FILE_LOOKUP_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::FILE_LOOKUP_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::REMOVE_ENTRY_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::REMOVE_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_REQUEST_MESSAGE_PAYLOAD, 0},
-		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0}*/
+		{wrench::FileRegistryServiceMessagePayload::ADD_ENTRY_ANSWER_MESSAGE_PAYLOAD, 0}
 		}
 
 	);
@@ -182,7 +182,7 @@ int Simulator::run(int argc, char** argv) {
 	temp_storage_service = new wrench::SimpleStorageService(master_node, {"/"}, {
 		{wrench::SimpleStorageServiceProperty::BUFFER_SIZE, "infinity"}
 		}, {
-/*		{wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+		{wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_ANSWER_MESSAGE_PAYLOAD, 0},
@@ -195,7 +195,7 @@ int Simulator::run(int argc, char** argv) {
 		{wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_REQUEST_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_ANSWER_MESSAGE_PAYLOAD, 0},
 		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_REQUEST_MESSAGE_PAYLOAD, 0},
-		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}*/
+		{wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}
 		}
 	);
     } catch (std::invalid_argument &e) {
@@ -208,7 +208,7 @@ int Simulator::run(int argc, char** argv) {
 	    temp_storage_service = new wrench::SimpleStorageService(comp_node, {"/"}, {
             	    {wrench::SimpleStorageServiceProperty::BUFFER_SIZE, "infinity"}
                     }, {
-/*		    {wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
+		    {wrench::SimpleStorageServiceMessagePayload::STOP_DAEMON_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::DAEMON_STOPPED_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_REQUEST_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FREE_SPACE_ANSWER_MESSAGE_PAYLOAD, 0},
@@ -221,7 +221,7 @@ int Simulator::run(int argc, char** argv) {
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_REQUEST_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_WRITE_ANSWER_MESSAGE_PAYLOAD, 0},
 		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_REQUEST_MESSAGE_PAYLOAD, 0},
-		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}*/
+		    {wrench::SimpleStorageServiceMessagePayload::FILE_READ_ANSWER_MESSAGE_PAYLOAD, 0}
                     }
 	    );
 	} catch (std::invalid_argument &e) {
@@ -292,10 +292,11 @@ int Simulator::run(int argc, char** argv) {
     if (simgrid::s4u::Engine::is_initialized() and dlps_activated) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
 	double total_energy = 0.0;
+	double total_bytes = 0.0;
         for (auto link : e->get_all_links()) {
 	    if (link->extension<simgrid::plugin::DLPS>()->is_enabled()) {
 		total_energy += sg_dlps_get_cum_energy(link);
-                
+                total_bytes += sg_dlps_get_cum_load(link);
                 // Link comm trace dump
                 std::string dlps_mode = link->extension<simgrid::plugin::DLPS>()->get_dlps_mode();
                 auto comm_trace = link->extension<simgrid::plugin::DLPS>()->get_comm_trace();
@@ -320,6 +321,9 @@ int Simulator::run(int argc, char** argv) {
 	    }
         }
 	WRENCH_INFO("Total energy: %f J", total_energy);
+	WRENCH_INFO("Total bytes: %f Bytes", total_bytes);
+	WRENCH_INFO("Energy efficiency: %f pJ/b", total_energy / total_bytes / 8 * 1.0e12);
+
     }
 
     /* Workflow completion info */ 
