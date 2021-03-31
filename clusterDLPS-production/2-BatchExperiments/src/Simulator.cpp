@@ -314,8 +314,7 @@ int Simulator::run(int argc, char** argv) {
 			 << std::get<0>(trace_line) << ","
 			 << std::get<1>(trace_line) << ","
 			 << std::get<2>(trace_line) << ","
-			 << std::get<3>(trace_line) << ","
-			 << std::get<4>(trace_line) << std::endl;
+			 << std::get<3>(trace_line) << std::endl;
 		}
 		file.close();
 	    }
