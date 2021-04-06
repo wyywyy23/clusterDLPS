@@ -15,6 +15,9 @@ for i = 1:numel(mode)
     last_busy = 0;
     interval = [];
     for j = 1:numel(action_trace{1})
+        if ~strcmp(action_trace{3}{j}, linkname)
+            continue;
+        end
         if find_corner
             if action_trace{2}(j) > 0
                 if action_trace{1}(j) > last_busy
