@@ -37,37 +37,39 @@ for i = 1:numel(mode)
         end
     end
     
-    % plot link start and end
-    filename = ['../../output/comm_trace/', mode{i}, '/', linkname, '.trace'];
-    link_trace = readLinkTrace(filename);
-    subplot(numel(mode), 1, i); hold on;
+    xlim([0 4000])
     
-    find_corner = true;
-    can_plot = false;
-    last_busy = 0;
-    interval = [];
-    for j = 1:numel(link_trace{1})
-        if find_corner
-            if link_trace{2}(j) > 0
-                if link_trace{1}(j) > last_busy
-                    interval = [interval, link_trace{1}(j) - last_busy];
-                end
-                corner = [link_trace{1}(j), -3];
-                find_corner = false;
-                can_plot = false;
-            end
-        else
-            if link_trace{2}(j) == 0
-                last_busy = link_trace{1}(j);
-                edge = [link_trace{1}(j) - corner(1), 1];
-                find_corner = true;
-                can_plot = true;
-            end
-        end
-        if can_plot
-            rectangle('Position', [corner, edge], 'FaceColor', 'k', 'EdgeColor', 'k');
-        end
-    end
+%     % plot link start and end
+%     filename = ['../../output/comm_trace/', mode{i}, '/', linkname, '.trace'];
+%     link_trace = readLinkTrace(filename);
+%     subplot(numel(mode), 1, i); hold on;
+%     
+%     find_corner = true;
+%     can_plot = false;
+%     last_busy = 0;
+%     interval = [];
+%     for j = 1:numel(link_trace{1})
+%         if find_corner
+%             if link_trace{2}(j) > 0
+%                 if link_trace{1}(j) > last_busy
+%                     interval = [interval, link_trace{1}(j) - last_busy];
+%                 end
+%                 corner = [link_trace{1}(j), -3];
+%                 find_corner = false;
+%                 can_plot = false;
+%             end
+%         else
+%             if link_trace{2}(j) == 0
+%                 last_busy = link_trace{1}(j);
+%                 edge = [link_trace{1}(j) - corner(1), 1];
+%                 find_corner = true;
+%                 can_plot = true;
+%             end
+%         end
+%         if can_plot
+%             rectangle('Position', [corner, edge], 'FaceColor', 'k', 'EdgeColor', 'k');
+%         end
+%     end
     
 %     % plot 
 %     filename = ['../../output/comm_trace/', mode{i}, '/', linkname, '.trace'];
