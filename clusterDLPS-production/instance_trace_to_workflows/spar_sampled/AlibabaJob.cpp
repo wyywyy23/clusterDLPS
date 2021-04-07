@@ -2,7 +2,7 @@
 #include "AlibabaJob.h"
 #include "helper/helper.h"
 
-double AlibabaJob::generateFileSize(std::string job_id, std::string file_id) { // File size in KB
+/*double AlibabaJob::generateFileSize(std::string job_id, std::string file_id) { // File size in KB
     std::mt19937 rng1;
     std::mt19937 rng2;
     std::seed_seq seed1 (job_id.begin(), job_id.end());
@@ -14,7 +14,7 @@ double AlibabaJob::generateFileSize(std::string job_id, std::string file_id) { /
     double file_size = max(dist1(rng1) + dist2(rng2), 0.0);
 
     return file_size; // Fix here with data size optimization result
-}
+}*/
 
 void AlibabaJob::addControlDependency(wrench::WorkflowTask* src, wrench::WorkflowTask* dst, bool redundant_dependencies) {
 

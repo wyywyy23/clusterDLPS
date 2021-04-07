@@ -1,9 +1,9 @@
 #!/bin/bash
 
 START_OFFSET=48
-DURATION=1
+DURATION=24
 
-WORKFLOW_DIR=./output/workflows_more_dags
+WORKFLOW_DIR=./output/workflows_without_file_size
 END=`expr ${DURATION} - 1`
 
 for (( START_HOUR=0; START_HOUR<=${END}; START_HOUR++ ))
@@ -16,6 +16,6 @@ do
 #    done
 done
 
-./trace2workflows ${START_OFFSET} ${DURATION} 1 1000
+./trace2workflows ${START_OFFSET} ${DURATION} 0.015 1000
 
-# ./trace2swf
+./trace2swf

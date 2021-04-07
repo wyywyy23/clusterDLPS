@@ -2,7 +2,7 @@
 
 for nMachines in 4 8 16 32 64
 do	
-    WORKFLOW_DIR="./workflows/${nMachines}_machines"
+    WORKFLOW_DIR="./workflows_without_file_size/${nMachines}_machines"
     mkdir -p ${WORKFLOW_DIR}
     ./trace2workflows ${nMachines} 0.015
 

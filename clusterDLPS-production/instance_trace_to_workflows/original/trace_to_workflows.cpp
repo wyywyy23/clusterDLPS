@@ -79,16 +79,8 @@ int dumpJob(AlibabaJob* job, std::string output_path, double time_out) {
     /* Update file size according to task execution time */
     auto all_files = job->getFiles();
     for (auto file : all_files ) {
-//	auto child_tasks = file->getInputOf();
-//	if (not child_tasks.empty()) {
-//	    double avg_flops = 0;
-//	    for (auto itt = child_tasks.begin(); itt != child_tasks.end(); ++itt) {
-//		avg_flops += itt->second->getFlops();
-//	    }
-//	    avg_flops = avg_flops / child_tasks.size();
-//	    file->setSize(job->generateFileSize(avg_flops));
-//	}
-	file->setSize(job->generateFileSize(job->getName(), file->getID()));
+//	file->setSize(job->generateFileSize(job->getName(), file->getID()));
+	file->setSize(0);
     }
 
 
@@ -198,7 +190,7 @@ int main(int argc, char **argv) {
     int dump_interval = std::atoi(argv[4]);
 
     std::string trace_file_path = "trace/batch_instance.csv";
-    std::string output_path = "output/workflows_more_dags/";
+    std::string output_path = "output/workflows_without_file_size/";
 
     std::cerr << "Trace file:\t" << trace_file_path << std::endl;
     std::cerr << "Output Path:\t" << output_path << std::endl;
