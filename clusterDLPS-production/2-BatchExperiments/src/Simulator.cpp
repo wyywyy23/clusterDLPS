@@ -28,14 +28,15 @@ int Simulator::run(int argc, char** argv) {
     auto simulation = new wrench::Simulation();
     simulation->init(&argc, argv);
 
-    if (argc != 6 and argc != 7) {
+    if (argc != 7 and argc != 8) {
 	std::cerr << argc << std::endl;
-        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines>  <scheduling algorithm> [host selection algorithm]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines> <network factor> <scheduling algorithm> [host selection algorithm]" << std::endl;
         exit(1);
     }
 
     char* platform_file = argv[1];
     double load_factor = std::atof(argv[4]) / 4096.0;
+    double network_factor = std::atof(argv[5]);
 
     try {
 	simulation->instantiatePlatform(platform_file);
@@ -71,6 +72,7 @@ int Simulator::run(int argc, char** argv) {
 	    sg_dlps_enable(link);
 	}
 //	sg_dlps_enable(e->link_by_name("link_from_0_-1_0_UP"));
+//	sg_dlps_enable(e->link_by_name("link_from_0_-1_0_DOWN"));
     }
 
     /* Instantiate one compute service on the WMS host for all nodes */
@@ -98,10 +100,10 @@ int Simulator::run(int argc, char** argv) {
     try {
 	temp_batch_service = new wrench::BatchComputeService(
 		master_node, compute_nodes, "", {
-		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[5])},
+		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[6])},
 		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
 		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
-		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 6 ? "FIRSTFIT" : std::string(argv[6])},
+		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 7 ? "FIRSTFIT" : std::string(argv[7])},
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
@@ -259,7 +261,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, load_factor
+		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, load_factor, network_factor
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;

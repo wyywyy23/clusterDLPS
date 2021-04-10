@@ -34,7 +34,8 @@ namespace wrench {
                          const std::string &hostname,
 			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
 			 const std::string &workflow_file,
-			 const double load_factor) : WMS(
+			 const double load_factor,
+			 const double network_factor) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -45,6 +46,7 @@ namespace wrench {
 	this->hostname_to_storage_service = hostname_to_storage_service;
 	this->workflow_file = workflow_file;
 	this->load_factor = load_factor;
+	this->network_factor = network_factor;
 	}
 
     /**
@@ -223,6 +225,17 @@ namespace wrench {
 
       } else {
 	std::cerr << "Cannot create a workflow from " << workflow_file << ": not supporting formats other than .json and .dax" << std::endl;
+      }
+
+      // update workflow by network factor
+      for (auto task : workflow->getTasks()) {
+	task->setFlops(task->getFlops() / (1.0 + network_factor));
+      }
+
+      for (auto file : workflow->getFiles()) {
+	if (file->isOutput()) {
+	  file->setSize((file->getOutputOf()->getFlops() * network_factor / (1.0 + network_factor)) * 1000000000);
+	}
       }
 
       return workflow;
