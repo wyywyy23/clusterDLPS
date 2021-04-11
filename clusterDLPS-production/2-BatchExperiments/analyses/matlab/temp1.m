@@ -1,6 +1,6 @@
 close all; clear; clc;
 
-linkname = 'link_from_0_-1_0_UP';
+linkname = 'link_from_0_-1_0_DOWN';
 mode = {'none', 'on-off', 'laser', 'full'};
 figure;
 
