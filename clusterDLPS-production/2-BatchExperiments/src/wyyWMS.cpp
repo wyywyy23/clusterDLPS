@@ -35,7 +35,11 @@ namespace wrench {
 			 const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
 			 const std::string &workflow_file,
 			 const double load_factor,
-			 const double network_factor) : WMS(
+			 const double network_factor,
+			 const double slope,
+			 const double mean,
+			 const double std,
+			 const double max) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -47,6 +51,10 @@ namespace wrench {
 	this->workflow_file = workflow_file;
 	this->load_factor = load_factor;
 	this->network_factor = network_factor;
+	this->slope = slope;
+	this->mean = mean;
+	this->std = std;
+	this->max = max;
 	}
 
     /**
@@ -228,20 +236,29 @@ namespace wrench {
       }
 
       // update workflow by network factor
-      for (auto task : workflow->getTasks()) {
-	task->setFlops(task->getFlops() / (1.0 + network_factor));
-      }
 
       for (auto file : workflow->getFiles()) {
+	double size = truncatedGaussian(mean, std, max, workflow->getName());
 	if (file->isOutput()) {
-	  file->setSize((file->getOutputOf()->getFlops() * network_factor / (1.0 + network_factor)) * 1000000000);
+	  size += file->getOutputOf()->getFlops() * slope;
 	}
+	file->setSize(size * network_factor / (1.0 + network_factor));
+      }
+
+      for (auto task : workflow->getTasks()) {
+	task->setFlops(task->getFlops() / (1.0 + network_factor));
       }
 
       return workflow;
     }
 
-
+    double wyyWMS::truncatedGaussian(double mean, double std, double max, std::string name) {
+	std::mt19937 rng;
+	std::normal_distribution<double> dist(mean, std);
+	std::seed_seq seed(name.begin(), name.end());
+	rng.seed(seed);
+	return std::min(std::max(dist(rng), 0.0), max);
+    }
 }
 
 

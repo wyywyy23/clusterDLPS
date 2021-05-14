@@ -2,8 +2,8 @@ close all; clear; clc;
 
 addpath('helper');
 
-task_execution_trace_file = '../../output/task_execution_none.csv';
-link_usage_trace_file = '../../output/dlps_events_none.csv';
+task_execution_trace_file = '../../output/task_execution.csv';
+link_usage_trace_file = '../../output/dlps_events.csv';
 
 %% Task execution
 task_execution_data = readTaskExecutionTrace(task_execution_trace_file);
@@ -16,13 +16,13 @@ f1 = figure;
 
 clear task_execution_data;
 
-link_usage_data = readLinkUsageTrace(link_usage_trace_file);
+% link_usage_data = readLinkUsageTrace(link_usage_trace_file);
 
-f3 = figure;
-[f3, interval] = plotLinkUsage(link_usage_data, f3, 64);
-
-figure;
-histogram(interval, [0:0.0001:0.02])
+% f3 = figure;
+% [f3, interval] = plotLinkUsage(link_usage_data, f3, 64);
+% 
+% figure;
+% histogram(interval, [0:0.0001:0.02])
 
 % f4 = figure;
 % plotLinkStates(link_usage_data, f4, 64);

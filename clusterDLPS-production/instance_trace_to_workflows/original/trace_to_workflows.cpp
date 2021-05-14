@@ -279,6 +279,16 @@ int main(int argc, char **argv) {
 	    continue;
 	}
 
+	/* Assert end time >= start time */
+	if (end_time < start_time) {
+	    job_out_of_range[job_name] = true;
+	    if (jobs.find(job_name) != jobs.end()) {
+		delete jobs[job_name];
+		jobs.erase(job_name);
+	    }
+	    continue;
+	}
+
 //	/* Limit the size of out-of-range job list */
 //	while (job_out_of_range.size() > 100000) {
 //	    job_out_of_range.erase(job_out_of_range_list.front());

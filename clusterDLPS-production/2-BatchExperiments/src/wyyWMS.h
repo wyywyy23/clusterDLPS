@@ -31,9 +31,15 @@ namespace wrench {
 		  const std::map<std::string, std::shared_ptr<StorageService>> &hostname_to_storage_service,
 		  const std::string &workflow_file,
 		  const double load_factor,
-		  const double network_factor);
+		  const double network_factor,
+		  const double slope,
+		  const double mean,
+		  const double std,
+		  const double max);
 
 	Workflow* createWorkflowFromFile(std::string&);
+
+	double truncatedGaussian(double, double, double, std::string);
 
     protected:
 
@@ -52,6 +58,10 @@ namespace wrench {
 	double load_factor;
 	
 	double network_factor;
+	double slope;
+	double mean;
+	double std;
+	double max;
         
 	/** @brief Whether the workflow execution should be aborted */
         bool abort = false;

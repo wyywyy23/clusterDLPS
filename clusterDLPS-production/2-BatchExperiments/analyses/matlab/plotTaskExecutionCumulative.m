@@ -27,10 +27,10 @@ diff_end = mean(aet-eet);
 
 figure(fig);
 hold on;
-% plot(x, ast, 'm-');
-% plot(x, est, 'c-');
+plot(x, ast, 'm-');
+plot(x, est, 'c-');
 plot(x, aet, 'r-');
-%plot(x, eet, 'b-');
+plot(x, eet, 'b-');
 xlim([0 4000])
 
 end
