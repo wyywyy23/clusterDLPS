@@ -40,6 +40,11 @@ for i = 1:numel(mode)
         end
     end
     
+    task_trace = readTaskExecutionTrace(['../../output/task_execution_', mode{i}, '.csv']);
+    for j = 1:numel(task_trace{1})
+        rectangle('Position', [task_trace{6}(j), 0, task_trace{11}(j) - task_trace{6}(j), 1], 'EdgeColor', 'r')
+    end
+    
     xlim([0 4000])
     
 %     % plot link start and end

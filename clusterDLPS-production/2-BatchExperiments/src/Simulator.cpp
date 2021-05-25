@@ -42,7 +42,7 @@ int Simulator::run(int argc, char** argv) {
     double std = std::atof(argv[8]);
     double max = std::atof(argv[9]);
 
-    double payload_size = 0.0;
+    double payload_size = 1024.0;
 
     try {
 	simulation->instantiatePlatform(platform_file);
@@ -72,7 +72,7 @@ int Simulator::run(int argc, char** argv) {
 	const simgrid::s4u::Engine* e = simgrid::s4u::Engine::get_instance();
 	for (auto link : e->get_all_links()) {
 	    const char* link_name = link->get_cname();
-	    if (link_name[1] != 'i') continue;
+	    if (link_name[10] != '-') continue;
 	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
 	    WRENCH_DEBUG("Enable tracking on link: %s", link->get_name().c_str());
 	    sg_dlps_enable(link);

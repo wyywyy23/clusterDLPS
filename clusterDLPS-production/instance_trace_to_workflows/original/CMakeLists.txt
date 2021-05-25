@@ -29,7 +29,15 @@ set(SOURCE_FILES_SWF
 	fast-cpp-csv-parser/csv.h
    )
 
+set(SOURCE_FILES_COUNT
+	fast-cpp-csv-parser/csv.h
+   )
+
 add_executable(trace2workflows ${SOURCE_FILES_WORKFLOWS} trace_to_workflows.cpp)
 target_link_libraries(trace2workflows ${WRENCH_LIBRARY} ${SimGrid_LIBRARY})
 
 add_executable(trace2swf ${SOURCE_FILES_SWF} trace_to_swf.cpp)
+
+add_executable(taskCount ${SOURCE_FILES_COUNT} count_tasks.cpp)
+
+add_executable(jobCount ${SOURCE_FILES_COUNT} count_jobs.cpp)
