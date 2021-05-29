@@ -1,0 +1,39 @@
+close all; clear; clc;
+
+n = 16;
+hour0 = 0;
+hours = 1;
+a = 209000000;
+b = 0;
+rhoPool = 0.5;
+
+folder = 'output/fileHasChildren/';
+
+for r = 1:length(rhoPool)
+    rho = rhoPool(r);
+    data = [];
+    [status, ~] = system(['rm ', folder, '*']);
+    for hour = hour0:hour0+hours-1
+        command = ['./wyy_simulator --activate-dlps ',...
+            '--cfg=network/crosstraffic:0 --cfg=surf/precision:1.0e-15 ',...
+            '--cfg=contexts/guard-size:0 --cfg=network/optim:Full ',...
+            'platforms/cluster_', num2str(n), '_machines_FAT_TREE.xml ',...
+            '../instance_trace_to_workflows/original/output/swf/container_trace.swf ',...
+            '../instance_trace_to_workflows/original/output/workflows_without_file_size/',...
+            num2str(hour), '-', num2str(hour+1), '/ ',...
+            num2str(n), ' ',...
+            num2str(rho), ' ',...
+            num2str(a), ' ', num2str(b), ' ',...
+            'static --cfg=network/dlps:none ',...
+            '--log=wyy_wms.th:info --log=wyy_wms.fmt:%m ',...
+            '--log=wyy_wms.app:file:output/task_execution.csv'];
+        [status, ~] = system(command);
+        
+        filePattern = fullfile(folder, '*.csv');
+        jobFiles = dir(filePattern);
+        for i = 1:length(jobFiles)
+            data = [data; csvread([folder, jobFiles(i).name])];
+        end
+    end
+    ratio = (sum(data(:) == 0)) / numel(data);
+end
