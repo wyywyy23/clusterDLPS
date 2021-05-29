@@ -28,21 +28,19 @@ int Simulator::run(int argc, char** argv) {
     auto simulation = new wrench::Simulation();
     simulation->init(&argc, argv);
 
-    if (argc != 11 and argc != 12) {
+    if (argc != 9 and argc != 10) {
 	std::cerr << argc << std::endl;
-        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines> <network factor> <slope> <mean> <std> <max> <scheduling algorithm> [host selection algorithm]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <platform file> <background trace file> <workflow directory> <# of machines> <network factor> <a> <b> <scheduling algorithm> [host selection algorithm]" << std::endl;
         exit(1);
     }
 
     char* platform_file = argv[1];
     double load_factor = std::atof(argv[4]) / 4096.0;
     double network_factor = std::atof(argv[5]);
-    double slope = std::atof(argv[6]);
-    double mean = std::atof(argv[7]);
-    double std = std::atof(argv[8]);
-    double max = std::atof(argv[9]);
+    double a = std::atof(argv[6]);
+    double b = std::atof(argv[7]);
 
-    double payload_size = 1024.0;
+    double payload_size = 0;
 
     try {
 	simulation->instantiatePlatform(platform_file);
@@ -106,10 +104,10 @@ int Simulator::run(int argc, char** argv) {
     try {
 	temp_batch_service = new wrench::BatchComputeService(
 		master_node, compute_nodes, "", {
-		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[10])},
+		{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, std::string(argv[8])},
 		{wrench::BatchComputeServiceProperty::BATSCHED_CONTIGUOUS_ALLOCATION, "true"},
 		{wrench::BatchComputeServiceProperty::BATSCHED_LOGGING_MUTED, "true"},
-		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 11 ? "FIRSTFIT" : std::string(argv[11])},
+		{wrench::BatchComputeServiceProperty::HOST_SELECTION_ALGORITHM, argc == 9 ? "FIRSTFIT" : std::string(argv[9])},
 		{wrench::BatchComputeServiceProperty::IGNORE_INVALID_JOBS_IN_WORKLOAD_TRACE_FILE, "true"},
 		{wrench::BatchComputeServiceProperty::OUTPUT_CSV_JOB_LOG, "/tmp/batch_log.csv"},
 		{wrench::BatchComputeServiceProperty::SIMULATE_COMPUTATION_AS_SLEEP, "true"},
@@ -267,7 +265,7 @@ int Simulator::run(int argc, char** argv) {
 	try {
 	    temp_wms = new wrench::wyyWMS(
 		    std::unique_ptr<wrench::BatchStandardJobScheduler> (new wrench::BatchStandardJobScheduler(hostname_to_storage_service)),
-		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, load_factor, network_factor, slope, mean, std, max
+		    nullptr, compute_services, storage_services, file_registry_service, master_node, hostname_to_storage_service, workflow_file, load_factor, network_factor, a, b
 	    );
 	} catch (std::invalid_argument &e) {
 	    std::cerr << "Cannot instantiate a WMS: " << e.what() << std::endl;
@@ -307,7 +305,14 @@ int Simulator::run(int argc, char** argv) {
                 total_bytes += sg_dlps_get_cum_load(link);
                 // Link comm trace dump
                 std::string dlps_mode = link->extension<simgrid::plugin::DLPS>()->get_dlps_mode();
+		int bits = link->extension<simgrid::plugin::DLPS>()->get_idle_predictor_bits();
                 auto comm_trace = link->extension<simgrid::plugin::DLPS>()->get_comm_trace();
+
+		if (dlps_mode == "laser") dlps_mode = "dlps";
+		if (dlps_mode == "full" && bits == 0) dlps_mode = "tmax";
+		if (dlps_mode == "full" && bits == 2) dlps_mode = "2-bit";
+		if (dlps_mode == "full" && bits == 4) dlps_mode = "4-bit";
+
                 std::string filename = "output/comm_trace/" + dlps_mode + "/" + link->get_name() + ".trace";
                 std::ofstream file;
                 file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
@@ -324,7 +329,11 @@ int Simulator::run(int argc, char** argv) {
 			 << std::get<2>(trace_line) << ","
 			 << std::get<3>(trace_line) << ","
 			 << std::get<4>(trace_line) << ","
-			 << std::get<5>(trace_line) << std::endl;
+			 << std::get<5>(trace_line) << ","
+			 << std::get<6>(trace_line) << ","
+			 << std::get<7>(trace_line) << ","
+			 << std::get<8>(trace_line) << ","
+			 << std::get<9>(trace_line) << std::endl;
 		}
 		file.close();
 	    }

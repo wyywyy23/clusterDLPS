@@ -8,6 +8,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #include "wyyWMS.h"
 #include "helper/endWith.h"
@@ -36,10 +37,8 @@ namespace wrench {
 			 const std::string &workflow_file,
 			 const double load_factor,
 			 const double network_factor,
-			 const double slope,
-			 const double mean,
-			 const double std,
-			 const double max) : WMS(
+			 const double a,
+			 const double b) : WMS(
             std::move(standard_job_scheduler),
             std::move(pilot_job_scheduler),
             compute_services,
@@ -51,10 +50,8 @@ namespace wrench {
 	this->workflow_file = workflow_file;
 	this->load_factor = load_factor;
 	this->network_factor = network_factor;
-	this->slope = slope;
-	this->mean = mean;
-	this->std = std;
-	this->max = max;
+	this->a = a;
+	this->b = b;
 	}
 
     /**
@@ -77,6 +74,33 @@ namespace wrench {
       WRENCH_DEBUG("Created a workflow from %s, submit time: %f.", workflow_file.c_str(), temp_workflow->getSubmittedTime());
 
       this->addWorkflow(temp_workflow, temp_workflow->getSubmittedTime());
+
+      // Write file size info
+      std::ofstream file;
+      file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+      try {
+          file.open("output/filesize/" + this->getWorkflow()->getName() + ".csv");
+      } catch (const std::ofstream::failure &e) {
+          std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+          throw;
+      }
+      for (auto f : this->getWorkflow()->getFiles()) {
+	if (f->getSize() > 0)
+	  file << f->getSize() << std::endl;
+      }
+      file.close();
+
+      // Write if file has children
+      try {
+          file.open("output/fileHasChildren/" + this->getWorkflow()->getName() + ".csv");
+      } catch (const std::ofstream::failure &e) {
+          std::cerr << "Cannot open file for output: " << e.what() << std::endl;
+          throw;
+      }
+      for (auto f : this->getWorkflow()->getFiles()) {
+	  file << f->getInputOf().size() << std::endl;
+      }
+      file.close();
 
       for (auto const &f : this->getWorkflow()->getInputFiles()) {
 	    try {
@@ -238,9 +262,17 @@ namespace wrench {
       // update workflow by network factor
 
       for (auto file : workflow->getFiles()) {
-	double size = truncatedGaussian(mean, std, max, workflow->getName());
-	if (file->isOutput()) {
-	  size += file->getOutputOf()->getFlops() * slope;
+	double size = 0;
+	double execTime = 0;
+	if (!file->getInputOf().empty()) {
+	  for (auto it = file->getInputOf().begin(); it != file->getInputOf().end(); ++it) {
+	    try {
+		execTime += it->second->getFlops() / it->second->getInputFileNum();
+	    } catch (std::invalid_argument &e) {
+		continue;
+	    }
+	  }
+	  size = linear(execTime, a, b);
 	}
 	file->setSize(size * network_factor / (1.0 + network_factor));
       }
@@ -250,6 +282,10 @@ namespace wrench {
       }
 
       return workflow;
+    }
+
+    double wyyWMS::linear(double size, double a, double b) {
+	return std::max(size * a + b, 0.0);
     }
 
     double wyyWMS::truncatedGaussian(double mean, double std, double max, std::string name) {
